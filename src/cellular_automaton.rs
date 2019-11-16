@@ -76,6 +76,7 @@ pub mod generations;
 pub mod wireworld;
 pub mod langton_s_ant;
 pub mod bsfkl;
+pub mod von_neumann29;
 
 #[derive(Clone)]
 pub struct Pattern<T> {
