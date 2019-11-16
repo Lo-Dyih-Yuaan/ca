@@ -111,18 +111,15 @@ pub fn non_totalistic_rule(number: u32, birth: &'static str, save: &'static str)
 		Box::new(move |nw: &Cell, n: &Cell, ne: &Cell,
 		                w: &Cell, c: &Cell,  e: &Cell,
 		               sw: &Cell, s: &Cell, se: &Cell| -> Cell {
-			if let Cell::Generations(n) = c {
-				return
-					if n+1 < number {Cell::Generations(n+1)}
-					else if n+1 == number {Cell::Dead}
-					else {unreachable!()};
-			}
 			match c {
 				Cell::Live =>
 					if s_fun(nw,n,ne,w,e,sw,s,se) {Cell::Live} else {Cell::Generations(0)},
 				Cell::Dead =>
 					if b_fun(nw,n,ne,w,e,sw,s,se) {Cell::Live} else {Cell::Dead},
-				_ => unreachable!()
+				Cell::Generations(n) =>
+					if n+1 < number {Cell::Generations(n+1)}
+					else if n+1 == number {Cell::Dead}
+					else {unreachable!()}
 			}
 		})
 	}
