@@ -1,5 +1,6 @@
 use std::fmt::Debug;
 use std::fmt::Display;
+use std::fmt::LowerHex;
 use std::fmt::Formatter;
 use std::convert::TryFrom;
 
@@ -42,31 +43,31 @@ fn u32_print_str(n: u32) -> String {
 		s
 	}
 }
-trait FromStream: Sized {
-	fn from_stream(&str) -> (usize, Option<Self>);
+pub trait FromStream: Sized {
+	fn from_stream(&str) -> Option<(usize, Self)>;
 }
 impl FromStream for u32 {
 	#[inline(always)]
-	fn from_stream(s: &str) -> (usize, Option<Self>) {
+	fn from_stream(s: &str) -> Option<(usize, Self)> {
 		let mut chars = s.chars();
 		match chars.next() {
-			Some(c @ 'A' ... 'Z') =>
-				(1, Some(u32::from(c)-0x41)),
+			Some(c @ 'A' ..= 'Z') =>
+				Some((1, u32::from(c)-0x41)),
 			Some('[') => {
 				let mut n: u32 = 0;
 				let mut len: usize = 0; 
 				for c in chars {
 					if c == ']' {
-						return (len+2, Some(n));
-					} else if let '0' ... '9' = c {
+						return Some((len+2, n));
+					} else if let '0' ..= '9' = c {
 						len += 1;
 						n *= 10;
 						n += u32::from(c)-0x30;
-					} else { return (0, None); }
+					} else { return None; }
 				}
-				(0, None)
+				None
 			},
-			_ => (0, None),
+			_ => None,
 		}
 	}
 }
@@ -74,6 +75,7 @@ impl FromStream for u32 {
 pub mod life;
 pub mod generations;
 pub mod wireworld;
+pub mod no_time_at_all;
 pub mod langton_s_ant;
 pub mod bsfkl;
 pub mod von_neumann29;
@@ -196,7 +198,7 @@ impl<T> Pattern<T>
 		}
 		while !self.is_empty() &&
 		  self.data.iter().map(|v| v.last().unwrap()).all(|x| x == ground) {
-			for mut v in &mut self.data {
+			for v in &mut self.data {
 				v.pop();
 			}
 		}
@@ -209,7 +211,7 @@ impl<T> Pattern<T>
 		let mut x_offset: isize = 0;
 		while !self.is_empty() &&
 		  self.data.iter().map(|v| v.first().unwrap()).all(|x| x == ground) {
-			for mut v in &mut self.data {
+			for v in &mut self.data {
 				v.remove(0);
 			}
 			x_offset += 1;
@@ -226,7 +228,7 @@ impl<T> Debug for Pattern<T>
 			}
 			writeln!(f)?;
 		}
-		write!(f, "")
+		Ok(())
 	}
 }
 impl<T> Display for Pattern<T>
@@ -238,9 +240,31 @@ impl<T> Display for Pattern<T>
 			}
 			writeln!(f)?;
 		}
-		write!(f, "")
+		Ok(())
 	}
 }
+impl<T> LowerHex for Pattern<T>
+  where T: Display {
+	fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+		let len = self.data.len();
+		let mut s = String::new();
+		for _ in 0..len {
+			s.push(' ');
+		}
+		let mut s = s.as_str();
+		for l in self.data.iter() {
+			s = &s[1..];
+			write!(f, "{}", s)?;
+			for e in l.iter() {
+				write!(f, "{}", e)?;
+			}
+			writeln!(f)?;
+		}
+		Ok(())
+	}
+}
+
+
 impl<T> TryFrom<&str> for Pattern<T>
   where T: FromStream + Clone {
 	type Error = Vec<Vec<T>>;
@@ -250,9 +274,9 @@ impl<T> TryFrom<&str> for Pattern<T>
 		let mut temp_str = s;
 		while !temp_str.is_empty() {
 			let r = T::from_stream(temp_str);
-			if r.1.is_some() {
-				temp.push(r.1.unwrap());
-				temp_str = &temp_str[r.0..];
+			if let Some((len, ele)) = r {
+				temp.push(ele);
+				temp_str = &temp_str[len..];
 			} else {
 				p.data.push(temp.clone());
 				temp.clear();
@@ -276,6 +300,13 @@ impl<T> TryFrom<&str> for Pattern<T>
 		}
 	}
 }
+impl<T> TryFrom<String> for Pattern<T>
+  where T: FromStream + Clone {
+	type Error = Vec<Vec<T>>;
+	fn try_from(s: String) -> Result<Self, Self::Error> {
+		<Self as TryFrom<&str>>::try_from(&s)
+	}
+}
 
 impl<T: Eq+Clone> Pattern<T> {
 	pub fn is_oscillator<F>(&self, ground: &T, f: &F, period: usize) -> bool
@@ -291,8 +322,11 @@ impl<T: Eq+Clone> Pattern<T> {
 			temp = temp.0.infinte_evolve(&temp.1, f);
 			x_offset += temp.2;
 			y_offset += temp.3;
+			if x_offset == 0 && y_offset == 0 && temp.0.data == self.data && temp.1 == *ground {
+				return _n+1 == period;
+			}
 		}
-		x_offset == 0 && y_offset == 0 && temp.0.data == self.data && temp.1 == *ground
+		false
 	}
 	pub fn is_spaceship<F>(&self, ground: &T, f: &F, period: usize) -> Option<(isize, isize)>
 	  where F: RuleType<T> {
@@ -307,9 +341,21 @@ impl<T: Eq+Clone> Pattern<T> {
 			temp = temp.0.infinte_evolve(&temp.1, f);
 			x_offset += temp.2;
 			y_offset += temp.3;
+			if !(x_offset == 0 && y_offset == 0) && temp.0.data == self.data && temp.1 == *ground {
+				return if _n+1 == period {Some((x_offset, y_offset))} else {None};
+			}
 		}
-		if temp.0.data == self.data && temp.1 == *ground {
-			Some((x_offset, y_offset))
-		} else { None }
+		None
+	}
+	pub fn is_agar<F>(&self, f: &F, period: usize) -> bool
+	  where F: RuleType<T> {
+		let mut temp = self.clone();
+		for _n in 0..period {
+			temp = temp.tessellate_evolve(f);
+			if temp.data == self.data {
+				return _n+1 == period;
+			}
+		}
+		false
 	}
 }
