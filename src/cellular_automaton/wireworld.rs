@@ -4,59 +4,60 @@ use std::fmt::Formatter;
 use super::FromStream;
 
 #[derive(PartialEq, Eq, Clone)]
-pub enum Cell {
+pub enum State {
 	Empty,
 	Conductor,
 	ElectronHead,
 	ElectronTail
 }
-impl Debug for Cell {
+use self::State::*;
+impl Debug for State {
 	fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
 		match self {
-			Cell::Empty => write!(f, "."),
-			Cell::Conductor => write!(f, "-"),
-			Cell::ElectronHead => write!(f, "#"),
-			Cell::ElectronTail => write!(f, "@"),
+			Empty => write!(f, "."),
+			Conductor => write!(f, "-"),
+			ElectronHead => write!(f, "#"),
+			ElectronTail => write!(f, "@"),
 		}
 	}
 }
-impl Display for Cell {
+impl Display for State {
 	fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
 		match self {
-			Cell::Empty => write!(f, " ."),
-			Cell::Conductor => write!(f, "\u{1B}[7m -\u{1B}[0m"),
-			Cell::ElectronHead => write!(f, "\u{1B}[44m -\u{1B}[0m"),
-			Cell::ElectronTail => write!(f, "\u{1B}[46m -\u{1B}[0m"),
+			Empty => write!(f, " ."),
+			Conductor => write!(f, "\u{1B}[7m -\u{1B}[0m"),
+			ElectronHead => write!(f, "\u{1B}[44m -\u{1B}[0m"),
+			ElectronTail => write!(f, "\u{1B}[46m -\u{1B}[0m"),
 		}
 	}
 }
-impl FromStream for Cell {
-	fn from_stream(s: &str) -> (usize, Option<Self>) {
+impl FromStream for State {
+	fn from_stream(s: &str) -> Option<(usize, Self)> {
 		match s.chars().next() {
-			Some('.') => (1, Some(Cell::Empty)),
-			Some('-') => (1, Some(Cell::Conductor)),
-			Some('#') => (1, Some(Cell::ElectronHead)),
-			Some('@') => (1, Some(Cell::ElectronTail)),
-			_ => (0, None),
+			Some('.') => Some((1, Empty)),
+			Some('-') => Some((1, Conductor)),
+			Some('#') => Some((1, ElectronHead)),
+			Some('@') => Some((1, ElectronTail)),
+			_ => None,
 		}
 	}
 }
 
 #[allow(dead_code)]
-pub fn rule(nw: &Cell, n: &Cell, ne: &Cell,
-             w: &Cell, c: &Cell,  e: &Cell,
-            sw: &Cell, s: &Cell, se: &Cell) -> Cell {
+pub fn rule(nw: &State, n: &State, ne: &State,
+             w: &State, c: &State,  e: &State,
+            sw: &State, s: &State, se: &State) -> State {
 	match c {
-		Cell::Empty => Cell::Empty,
-		Cell::Conductor => {
+		Empty => Empty,
+		Conductor => {
 			let mut head_sum: usize = 0;
 			count!{$
-				Cell::ElectronHead => head_sum;
+				ElectronHead => head_sum;
 				*nw,*n,*ne,*w,*e,*sw,*s,*se
 			};
-			if let 1|2 = head_sum {Cell::ElectronHead} else {Cell::Conductor}
+			if let 1|2 = head_sum {ElectronHead} else {Conductor}
 		},
-		Cell::ElectronHead => Cell::ElectronTail,
-		Cell::ElectronTail => Cell::Conductor,
+		ElectronHead => ElectronTail,
+		ElectronTail => Conductor,
 	}
 }

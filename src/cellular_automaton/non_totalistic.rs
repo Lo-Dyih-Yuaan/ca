@@ -1,13 +1,3 @@
-macro_rules! is {
-	($e:expr; $($p:pat)|+) => (match $e {
-		$($p)|+ => true,
-		_ => false
-	});
-	($e:expr; $($p:pat)|+ if $g:expr) => (match $e {
-		$($p)|+ if $g => true,
-		_ => false
-	});
-}
 macro_rules! non_totalistic {
 	(@ ;
 	 $p11:pat,$p12:pat,$p13:pat,$p21:pat,$p23:pat,$p31:pat,$p32:pat,$p33:pat) => 
@@ -30,9 +20,9 @@ macro_rules! non_totalistic {
 			$p21,       $p23,
 			$p11, $p12, $p13)
 	};
-	($p11:pat,$p12:pat,$p13:pat,$p21:pat,$p23:pat,$p31:pat,$p32:pat,$p33:pat $(if $g:expr)?, $x:expr) => {
-		is!{
-			$x;
+	($p11:pat,$p12:pat,$p13:pat,$p21:pat,$p23:pat,$p31:pat,$p32:pat,$p33:pat, $x:expr) => {
+		matches!{
+			$x,
 			non_totalistic!(@; $p11,$p12,$p13,$p21,$p23,$p31,$p32,$p33) |
 			non_totalistic!(@rotate; $p11,$p12,$p13,$p21,$p23,$p31,$p32,$p33) |
 			non_totalistic!(@rotate rotate; $p11,$p12,$p13,$p21,$p23,$p31,$p32,$p33) |
@@ -40,19 +30,56 @@ macro_rules! non_totalistic {
 			non_totalistic!(@flip; $p11,$p12,$p13,$p21,$p23,$p31,$p32,$p33) |
 			non_totalistic!(@flip rotate; $p11,$p12,$p13,$p21,$p23,$p31,$p32,$p33) |
 			non_totalistic!(@flip rotate rotate; $p11,$p12,$p13,$p21,$p23,$p31,$p32,$p33) |
-			non_totalistic!(@flip rotate rotate rotate; $p11,$p12,$p13,$p21,$p23,$p31,$p32,$p33) $(if $g)?
+			non_totalistic!(@flip rotate rotate rotate; $p11,$p12,$p13,$p21,$p23,$p31,$p32,$p33)
 		}
 	}
 }
 
+/*macro_rules! non_totalistic_v {
+	(@ ;
+	 $p1:pat,$p2:pat,$p3:pat,$p4:pat) => 
+		{($p1,$p2,$p3,$p4)};
+	(@ rotate $($i:ident)*; //旋转（向右90°）
+	         $pn:pat,
+	 $pw:pat,         $pe:pat,
+	         $ps:pat) => {
+		non_totalistic_v!(@ $($i)*;
+			    $pw,
+			$ps,    $pn,
+			    $pe)
+	};
+	(@ flip $($i:ident)*; //翻转（垂直）
+	         $pn:pat,
+	 $pw:pat,         $pe:pat,
+	         $ps:pat) => {
+		non_totalistic_v!(@ $($i)*;
+			    $ps,
+			$pw,    $pe,
+			    $pn)
+	};
+	($p1:pat,$p2:pat,$p3:pat,$p4:pat , $x:expr) => {
+		matches!{
+			$x,
+			non_totalistic_v!(@; $p1,$p2,$p3,$p4) |
+			non_totalistic_v!(@rotate; $p1,$p2,$p3,$p4) |
+			non_totalistic_v!(@rotate rotate; $p1,$p2,$p3,$p4) |
+			non_totalistic_v!(@rotate rotate rotate; $p1,$p2,$p3,$p4) |
+			non_totalistic_v!(@flip; $p1,$p2,$p3,$p4) |
+			non_totalistic_v!(@flip rotate; $p1,$p2,$p3,$p4) |
+			non_totalistic_v!(@flip rotate rotate; $p1,$p2,$p3,$p4) |
+			non_totalistic_v!(@flip rotate rotate rotate; $p1,$p2,$p3,$p4)
+		}
+	}
+}*/
+
 /*使用该宏可能引起大量警告，建议使用`#[allow(unreachable_patterns)]`阻止*/
 macro_rules! non_totalistic_closure {
 	/*宏内部使用*/
-	($t:ty;$p11:pat,$p12:pat,$p13:pat,$p21:pat,$p23:pat,$p31:pat,$p32:pat,$p33:pat $(if $g:expr)?) => {
+	($t:ty;$p11:pat,$p12:pat,$p13:pat,$p21:pat,$p23:pat,$p31:pat,$p32:pat,$p33:pat) => {
 		Box::new(
 			|c11:&$t,c12:&$t,c13:&$t,c21:&$t,c23:&$t,c31:&$t,c32:&$t,c33:&$t|
 			non_totalistic!{
-				$p11,$p12,$p13,$p21,$p23,$p31,$p32,$p33 $(if $g)?,
+				$p11,$p12,$p13,$p21,$p23,$p31,$p32,$p33,
 				(c11,c12,c13,c21,c23,c31,c32,c33)
 			}
 		) as Box<dyn Fn(&$t,&$t,&$t,&$t,&$t,&$t,&$t,&$t) -> bool>

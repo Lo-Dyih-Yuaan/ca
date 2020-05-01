@@ -11,31 +11,32 @@ pub enum Cell {
 	Dead,
 	Destructive
 }
+use self::Cell::*;
 impl Debug for Cell {
 	fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
 		match self {
-			Cell::Live => write!(f, "#"),
-			Cell::Dead => write!(f, "."),
-			Cell::Destructive => write!(f, "@"),
+			Live => write!(f, "#"),
+			Dead => write!(f, "."),
+			Destructive => write!(f, "@"),
 		}
 	}
 }
 impl Display for Cell {
 	fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
 		match self {
-			Cell::Live => write!(f, "\u{1b}[7m -\u{1b}[0m"),
-			Cell::Dead => write!(f, " -"),
-			Cell::Destructive => write!(f, "\u{1b}[42m @\u{1b}[0m"),
+			Live => write!(f, "\u{1b}[7m -\u{1b}[0m"),
+			Dead => write!(f, " -"),
+			Destructive => write!(f, "\u{1b}[42m @\u{1b}[0m"),
 		}
 	}
 }
 impl FromStream for Cell {
-	fn from_stream(s: &str) -> (usize, Option<Self>) {
+	fn from_stream(s: &str) -> Option<(usize, Self)> {
 		match s.chars().next() {
-			Some('#') => (1, Some(Cell::Live)),
-			Some('.') => (1, Some(Cell::Dead)),
-			Some('@') => (1, Some(Cell::Destructive)),
-			_ => (0, None),
+			Some('#') => Some((1, Live)),
+			Some('.') => Some((1, Dead)),
+			Some('@') => Some((1, Destructive)),
+			_ => None
 		}
 	}
 }
@@ -49,23 +50,20 @@ pub fn rule(bs: &'static[usize], ss: &'static[usize],
 		let mut live_count: usize = 0;
 		let mut destructive_count: usize = 0;
 		count!{$
-			Cell::Live => live_count,
-			Cell::Destructive => destructive_count;
+			Live => live_count,
+			Destructive => destructive_count;
 			*nw,*n,*ne,*w,*e,*sw,*s,*se
 		};
 		match c {
-			Cell::Live =>
-				if ks.contains(&destructive_count) {
-					Cell::Dead
-				} else if ss.contains(&live_count) {
-					Cell::Live
-				} else {Cell::Destructive},
-			Cell::Dead =>
-				if bs.contains(&live_count) && fs.contains(&destructive_count) {
-					Cell::Live
-				} else {Cell::Dead},
-			Cell::Destructive =>
-				if ls.contains(&live_count) {Cell::Dead} else {Cell::Destructive}
+			Live =>
+				if ks.contains(&destructive_count) {Dead}
+				else if ss.contains(&live_count) {Live}
+				else {Destructive},
+			Dead =>
+				if bs.contains(&live_count) && fs.contains(&destructive_count) {Live}
+				else {Dead},
+			Destructive =>
+				if ls.contains(&live_count) {Dead} else {Destructive}
 		}
 	})
 }
