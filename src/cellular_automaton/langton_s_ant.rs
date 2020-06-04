@@ -102,27 +102,28 @@ pub fn rule(states: &'static str) -> BoxRule<State> {
 			match ($state, $rotate) {
 				(NoAnt(n), _) => NoAnt(*n),
 				//N，方向不变
-				(_, Some('N')) => $state.clone(),
+				(_, 'N') => $state.clone(),
 				//R，向右转
-				(NorthAnt(n), Some('R')) => EastAnt(*n),
-				(EastAnt(n), Some('R')) => SouthAnt(*n),
-				(SouthAnt(n), Some('R')) => WestAnt(*n),
-				(WestAnt(n), Some('R')) => NorthAnt(*n),
+				(NorthAnt(n), 'R') => EastAnt(*n),
+				(EastAnt(n), 'R') => SouthAnt(*n),
+				(SouthAnt(n), 'R') => WestAnt(*n),
+				(WestAnt(n), 'R') => NorthAnt(*n),
 				//L，向左转
-				(NorthAnt(n), Some('L')) => WestAnt(*n),
-				(EastAnt(n), Some('L')) => NorthAnt(*n),
-				(SouthAnt(n), Some('L')) => EastAnt(*n),
-				(WestAnt(n), Some('L')) => SouthAnt(*n),
+				(NorthAnt(n), 'L') => WestAnt(*n),
+				(EastAnt(n), 'L') => NorthAnt(*n),
+				(SouthAnt(n), 'L') => EastAnt(*n),
+				(WestAnt(n), 'L') => SouthAnt(*n),
 				//U，翻转
-				(NorthAnt(n), Some('U')) => SouthAnt(*n),
-				(EastAnt(n), Some('U')) => WestAnt(*n),
-				(SouthAnt(n), Some('U')) => NorthAnt(*n),
-				(WestAnt(n), Some('U')) => EastAnt(*n),
+				(NorthAnt(n), 'U') => SouthAnt(*n),
+				(EastAnt(n), 'U') => WestAnt(*n),
+				(SouthAnt(n), 'U') => NorthAnt(*n),
+				(WestAnt(n), 'U') => EastAnt(*n),
 				_ => unreachable!()
 			}
 		};
 	}
 	let states_num: u32 = states.len() as u32;
+	let turn_table: Vec<_> = states.chars().collect();
 	Box::new(move |_nw: &State, n: &State, _ne: &State,
 	                 w: &State, c: &State,   e: &State,
 	               _sw: &State, s: &State, _se: &State| -> State {
@@ -133,10 +134,10 @@ pub fn rule(states: &'static str) -> BoxRule<State> {
 			else if now_state+1 == states_num {0}
 			else {unreachable!()}
 		};
-		let next_n = turn!(n, states.chars().nth(n.state() as usize));
-		let next_e = turn!(e, states.chars().nth(e.state() as usize));
-		let next_s = turn!(s, states.chars().nth(s.state() as usize));
-		let next_w = turn!(w, states.chars().nth(w.state() as usize));
+		let next_n = turn!(n, turn_table[n.state() as usize]);
+		let next_e = turn!(e, turn_table[e.state() as usize]);
+		let next_s = turn!(s, turn_table[s.state() as usize]);
+		let next_w = turn!(w, turn_table[w.state() as usize]);
 		let have_ant_from_n = matches!(next_n, SouthAnt(_));
 		let have_ant_from_e = matches!(next_e, WestAnt(_));
 		let have_ant_from_s = matches!(next_s, NorthAnt(_));
