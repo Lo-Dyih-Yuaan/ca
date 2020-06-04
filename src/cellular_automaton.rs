@@ -31,7 +31,7 @@ macro_rules! count {
 	};
 }
 #[macro_use]
-mod non_totalistic;
+mod symmetry;
 #[inline(always)]
 fn u32_print_str(n: u32) -> String {
 	if n < 26 {
