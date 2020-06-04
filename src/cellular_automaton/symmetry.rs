@@ -178,19 +178,9 @@ macro_rules! non_totalistic_closure {
 					if fs.is_empty() {
 						return true;
 					} else if *is_not {
-						for f in fs {
-							if f(c11,c12,c13,c21,c23,c31,c32,c33) {
-								return false;
-							}
-						}
-						return true;
+						return !fs.iter().any(|f| f(c11,c12,c13,c21,c23,c31,c32,c33));
 					} else {
-						for f in fs {
-							if f(c11,c12,c13,c21,c23,c31,c32,c33) {
-								return true;
-							}
-						}
-						return false;
+						return fs.iter().any(|f| f(c11,c12,c13,c21,c23,c31,c32,c33));
 					}
 				}
 			}
