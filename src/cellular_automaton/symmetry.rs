@@ -156,11 +156,11 @@ macro_rules! non_totalistic_closure {
 			temp
 		};
 		let i = i_n.zip(i_str).map(|(n, s)| {
-			let is_not = s.starts_with("-");
-			let s = if is_not {&s[1..]} else {s};
+			let is_inversed = s.starts_with("-");
+			let s = if is_inversed {&s[1..]} else {s};
 			let fs = s.chars().map(move|c|non_totalistic_closure!($t; $p, n, c));
 			let fs: Vec<_> = fs.collect();
-			(n, is_not, fs)
+			(n, is_inversed, fs)
 		});
 		let v: Vec<(usize, bool, Vec<_>)> = i.collect();
 		move |c11:&$t,c12:&$t,c13:&$t,c21:&$t,c23:&$t,c31:&$t,c32:&$t,c33:&$t| {
@@ -173,15 +173,10 @@ macro_rules! non_totalistic_closure {
 			if let $p = c31 {sum+=1;}
 			if let $p = c32 {sum+=1;}
 			if let $p = c33 {sum+=1;}
-			for (n, is_not, fs) in &v {
+			for (n, is_inversed, fs) in &v {
 				if *n == sum {
-					if fs.is_empty() {
-						return true;
-					} else if *is_not {
-						return !fs.iter().any(|f| f(c11,c12,c13,c21,c23,c31,c32,c33));
-					} else {
-						return fs.iter().any(|f| f(c11,c12,c13,c21,c23,c31,c32,c33));
-					}
+					return fs.is_empty() ||
+						(is_inversed ^ fs.iter().any(|f| f(c11,c12,c13,c21,c23,c31,c32,c33)));
 				}
 			}
 			return false;
