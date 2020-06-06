@@ -50,9 +50,8 @@ pub fn rule(nw: &State, n: &State, ne: &State,
 	match c {
 		Empty => Empty,
 		Conductor => {
-			let mut head_sum: usize = 0;
-			count!{$
-				ElectronHead => head_sum;
+			let [head_sum] = count!{$
+				ElectronHead;
 				*nw,*n,*ne,*w,*e,*sw,*s,*se
 			};
 			if let 1|2 = head_sum {ElectronHead} else {Conductor}

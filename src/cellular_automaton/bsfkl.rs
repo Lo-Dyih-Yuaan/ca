@@ -47,11 +47,8 @@ pub fn rule(bs: &'static[usize], ss: &'static[usize],
 	Box::new(move |nw: &Cell, n: &Cell, ne: &Cell,
 	                w: &Cell, c: &Cell,  e: &Cell,
 	               sw: &Cell, s: &Cell, se: &Cell| -> Cell {
-		let mut live_count: usize = 0;
-		let mut destructive_count: usize = 0;
-		count!{$
-			Live => live_count,
-			Destructive => destructive_count;
+		let [live_count, destructive_count] = count!{$
+			Live, Destructive;
 			*nw,*n,*ne,*w,*e,*sw,*s,*se
 		};
 		match c {

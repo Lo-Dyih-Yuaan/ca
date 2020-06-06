@@ -52,9 +52,8 @@ pub fn rule(number: u32, birth: &'static[usize], save: &'static[usize]) -> BoxRu
 		Box::new(move |nw: &Cell, n: &Cell, ne: &Cell,
 		                w: &Cell, c: &Cell,  e: &Cell,
 		               sw: &Cell, s: &Cell, se: &Cell| -> Cell {
-			let mut out_sum: usize = 0;
-			count!{$
-				Live => out_sum;
+			let [out_sum] = count!{$
+				Live;
 				*nw,*n,*ne,*w,*e,*sw,*s,*se
 			};
 			match c {
@@ -73,9 +72,8 @@ pub fn rule(number: u32, birth: &'static[usize], save: &'static[usize]) -> BoxRu
 					else if n+1 == number {Dead}
 					else {unreachable!()};
 			}
-			let mut out_sum: usize = 0;
-			count!{$
-				Live => out_sum;
+			let [out_sum] = count!{$
+				Live;
 				*nw,*n,*ne,*w,*e,*sw,*s,*se
 			};
 			match c {

@@ -61,13 +61,8 @@ pub fn rule(_nw: &State, n: &State, _ne: &State,
 		Wire =>
 			if is_exist!(Tail in n,e,s,w) {Wire}
 			else {
-				let mut wire_sum: usize = 0;
-				let mut head0_sum: usize = 0;
-				let mut head1_sum: usize = 0;
-				count!{$
-					Wire => wire_sum,
-					Head(false) => head0_sum,
-					Head(true) => head1_sum;
+				let [wire_sum, head0_sum, head1_sum] = count!{$
+					Wire, Head(false), Head(true);
 					*n,*e,*s,*w
 				};
 				//无信号不变化

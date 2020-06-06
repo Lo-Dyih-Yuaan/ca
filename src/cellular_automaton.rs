@@ -14,21 +14,33 @@ pub mod golly;
 /**
  * 用于计数。
  * `$d`必为`$`，以解决宏内`$`将被转义的问题。
- * `$m`为统计对象；`$i`为相应的匹配次数，应当是可变的，类型建议为`usize`。
- * `$e`为待统计对象。
+ * `$m`为统计对象；`$e`为待统计对象。
+ * 返回一个长度与`$m`相同的`usize`数组。
  * 匹配使用`==`。
  */
 macro_rules! count {
-	($d:tt $($m:expr => $i:ident),+ ; $($e:expr),*) => {
+	(@index) => {0};
+	(@index $e:expr) => {1};
+	(@index $e1:expr, $e2:expr) => {2};
+	(@index $e1:expr, $e2:expr, $e3:expr) => {3};
+	(@if $c:expr, $e:expr, $m:expr; $($os:expr),*) => {
+		if $e == $m {$c[count!{@index $($os),*}] += 1;}
+	};
+	(@if $c:expr, $e:expr, $m:expr, $($ms:expr),+; $($os:expr),*) => {
+		if $e == $m {$c[count!{@index $($os),*}] += 1;}
+		else {count!{@if $c, $e, $($ms),+; $($os,)* $m}}
+	};
+	($d:tt $($m:expr),+ ; $($e:expr),*) => {{
+		let mut temp: [usize; count!(@index $($m),+)] =
+			[0; count!(@index $($m),+)];
 		macro_rules! __count {
 			($d arg:expr) => {
-				$(if $d arg == $m {
-					$i += 1;
-				} else)+ { (); }
+				count!{@if temp, $d arg, $($m),+;}
 			};
 		}
 		$(__count!($e);)*
-	};
+		temp
+	}};
 }
 #[macro_use]
 mod symmetry;

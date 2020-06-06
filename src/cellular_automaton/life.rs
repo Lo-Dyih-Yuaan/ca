@@ -42,9 +42,8 @@ pub fn rule(birth: &'static[usize], save: &'static[usize]) -> BoxRule<Cell> {
 	Box::new(move |nw: &Cell, n: &Cell, ne: &Cell,
 	                w: &Cell, c: &Cell,  e: &Cell,
 	               sw: &Cell, s: &Cell, se: &Cell| -> Cell {
-		let mut out_sum: usize = 0;
-		count!{$
-			Live => out_sum;
+		let [out_sum] = count!{$
+			Live;
 			*nw,*n,*ne,*w,*e,*sw,*s,*se
 		};
 		match c {
@@ -58,9 +57,8 @@ pub fn rule_h(birth: &'static[usize], save: &'static[usize]) -> BoxRule<Cell> {
 	Box::new(move | nw: &Cell, n: &Cell, _ne: &Cell,
 	                 w: &Cell, c: &Cell,   e: &Cell,
 	               _sw: &Cell, s: &Cell,  se: &Cell| -> Cell {
-		let mut out_sum: usize = 0;
-		count!{$
-			Live => out_sum;
+		let [out_sum] = count!{$
+			Live;
 			*nw,*n,*w,*e,*s,*se
 		};
 		match c {
