@@ -11,7 +11,8 @@ enum RuleTreeNode<T> {
 pub struct RuleTree<T> {
 	rules: Vec<RuleTreeNode<T>>,
 	states: Vec<T>,
-	params: [T; 9]
+	params: [T; 9],
+	neighbors: usize,
 }
 
 impl<T: Clone> RuleTree<T> {
@@ -25,13 +26,14 @@ impl<T: Clone> RuleTree<T> {
 				d.clone(), d.clone(), d.clone(),
 			],
 			states: ss,
+			neighbors: 0,
 		}
 	}
 }
 impl<T: Eq> Debug for RuleTree<T> {
 	fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
 		writeln!(f, "num_states={}", self.states.len())?;
-		writeln!(f, "num_neighbors=8")?;
+		writeln!(f, "num_neighbors={}", self.neighbors)?;
 		writeln!(f, "num_nodes={}", self.rules.len())?;
 		for rule in &self.rules {
 			match rule {
@@ -92,10 +94,12 @@ impl<T: Eq + Clone> RuleTree<T> {
 	}
 	pub fn create_tree<F: RuleType<T>>(&mut self, f: &F) {
 		self.rules.clear();
+		self.neighbors = 8;
 		self.recur(9, f);
 	}
 	pub fn create_von_neumann_tree<F: RuleType<T>>(&mut self, f: &F) {
 		self.rules.clear();
+		self.neighbors = 4;
 		self.recur(5, f);
 	}
 }
