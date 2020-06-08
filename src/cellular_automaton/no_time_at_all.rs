@@ -2,6 +2,7 @@ use std::fmt::Debug;
 use std::fmt::Display;
 use std::fmt::Formatter;
 use super::FromStream;
+use super::BoxRule;
 
 #[derive(PartialEq, Eq, Clone)]
 pub enum State {
@@ -81,4 +82,46 @@ pub fn rule(_nw: &State, n: &State, _ne: &State,
 		Head(b) => if is_exist!(Wire in n,e,s,w) {Head(*b)} else {Tail},
 		Tail => if is_exist!(Head(_) in n,e,s,w) {Tail} else {Wire}
 	}
+}
+
+#[allow(dead_code)]
+pub fn rule_bi_ter(binary: &'static[usize], ternary: &'static[usize]) -> BoxRule<State> {
+	Box::new(move |_nw: &State, n: &State, _ne: &State,
+	                 w: &State, c: &State,   e: &State,
+	               _sw: &State, s: &State, _se: &State| -> State {
+		macro_rules! is_exist {
+			($($p:pat)|+ in $i:expr) => {matches!($i, $($p)|+)};
+			($($p:pat)|+ in $i:expr, $($is:expr),*) =>
+				{matches!($i, $($p)|+) || is_exist!($($p)|+ in $($is),*)};
+		}
+		match c {
+			Empty => Empty,
+			Wire =>
+				if is_exist!(Tail in n,e,s,w) {Wire}
+				else {
+					let [wire_sum, head0_sum, head1_sum] = count!{$
+						Wire, Head(false), Head(true);
+						*n,*e,*s,*w
+					};
+					let head_sum = head0_sum + head1_sum;
+					//无信号不变化
+					if head_sum == 0 {Wire}
+					//丁字路口倍增传输
+					else if let (Head(b),Wire,Wire,Empty) = (n,w,e,s) {Head(*b)}
+					else if let (Head(b),Wire,Wire,Empty) = (s,w,e,n) {Head(*b)}
+					else if let (Head(b),Wire,Wire,Empty) = (e,n,s,w) {Head(*b)}
+					else if let (Head(b),Wire,Wire,Empty) = (w,n,s,e) {Head(*b)}
+					//丁字路口外多出口阻塞
+					else if wire_sum >= 2 {Wire}
+					//二元门
+					else if head_sum == 2 {Head(binary.contains(&head1_sum))}
+					//二元门
+					else if head_sum == 3 {Head(ternary.contains(&head1_sum))}
+					//单输入不变传输，四输入不会产生影响，因此不专门写出
+					else {Head(head1_sum == 1)}
+				},
+			Head(b) => if is_exist!(Wire in n,e,s,w) {Head(*b)} else {Tail},
+			Tail => if is_exist!(Head(_) in n,e,s,w) {Tail} else {Wire}
+		}
+	})
 }
