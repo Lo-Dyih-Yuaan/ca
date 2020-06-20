@@ -26,6 +26,8 @@ macro_rules! rule {
 		{cellular_automaton::langton_s_ant::rule(concat!{$(stringify!($t)),+})};
 	(@fun WireWorld) => {cellular_automaton::wireworld::rule};
 	(@fun NoTimeAtAll) => {cellular_automaton::no_time_at_all::rule};
+	(@fun NoTimeAtAll - B $($b:literal)* / T $($t:literal)*) =>
+		{cellular_automaton::no_time_at_all::rule_bi_ter(&[$($b),*],&[$($t),*])};
 	(@fun von Neumann 29) => {cellular_automaton::von_neumann29::rule};
 	//规则字符串
 	(@str non-totalistic B $b:literal / S $s:literal) =>
@@ -42,6 +44,27 @@ macro_rules! rule {
 	//输入
 	($($t:tt)+) => {(rule!{@fun $($t)+}, rule!{@str $($t)+}, rule!{@display $($t)+})};
 }
+
+macro_rules! print_rule_tree {
+	($rule:expr, $states:expr) => {{
+		let (rf, _, _) = $rule;
+		let mut rt = cellular_automaton::golly::RuleTree::new(
+			Pattern::try_from(format!("{}$", $states)).ok().unwrap().get_data()[0].clone());
+		rt.create_tree(&rf);
+		println!("{:?}", rt);
+	}}
+}
+
+macro_rules! print_von_neumann_rule_tree {
+	($rule:expr, $states:expr) => {{
+		let (rf, _, _) = $rule;
+		let mut rt = cellular_automaton::golly::RuleTree::new(
+			Pattern::try_from(format!("{}$", $states)).ok().unwrap().get_data()[0].clone());
+		rt.create_von_neumann_tree(&rf);
+		println!("{:?}", rt);
+	}}
+}
+
 macro_rules! run_ca {
 	($rule:expr, $p:expr, $n:expr) => {
 		let (rule, _rule_str, _) = $rule;
@@ -536,14 +559,25 @@ fn main() {
 		},
 		12
 	};*/
-	/*let (rf, _rs) = rule!{B 3 4 / S 2 3 4 / F 0 1 2 3 6 / K 2 3 4 5 / L 0 2 3 4 5};
-	let mut rt = cellular_automaton::golly::RuleTree::new(vec![
-		cellular_automaton::bsfkl::Cell::Dead,
-		cellular_automaton::bsfkl::Cell::Live,
-		cellular_automaton::bsfkl::Cell::Destructive
-	]);
-	rt.create_tree(&rf);
-	println!("{:?}", rt);*/
+	print_rule_tree!(
+		rule!{B 3 4 / S 2 3 4 / F 0 1 2 3 6 / K 2 3 4 5 / L 0 2 3 4 5},
+		".#@"
+	);
+	/*print_von_neumann_rule_tree!(
+		rule!{NoTimeAtAll-B 0 1/T 0 3},
+		".-01@$"
+	);*/
+	print_von_neumann_rule_tree!(
+		rule!{von Neumann 29},
+		concat!{
+			"USS0S1S00S01S10S11S000",
+			"To>_To^_To<_Tov_",
+			"To>~To^~To<~Tov~",
+			"Ts>_Ts^_Ts<_Tsv_",
+			"Ts>~Ts^~Ts<~Tsv~",
+			"C__C_~C~_C~~"
+		}
+	);
 }
 /*
 function f(str) {
