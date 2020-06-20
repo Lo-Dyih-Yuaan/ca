@@ -261,7 +261,7 @@ pub fn rule(_nw: &State, n: &State, _ne: &State,
 			(S01, true) => SpecialTransmission(East, Quiescent),
 			(S10, false) => SpecialTransmission(North, Quiescent),
 			(S10, true) => SpecialTransmission(West, Quiescent),
-			(S11, false) => SpecialTransmission(North, Quiescent),
+			(S11, false) => SpecialTransmission(South, Quiescent),
 			(S11, true) => Confluent(Quiescent, Quiescent),
 			_ => unreachable!()
 		}
