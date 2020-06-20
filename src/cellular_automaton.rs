@@ -230,6 +230,9 @@ impl<T> Pattern<T>
 		}
 		(x_offset, y_offset)
 	}
+	pub fn get_data(&self) -> Vec<Vec<T>> {
+		self.data.clone()
+	}
 }
 impl<T> Debug for Pattern<T>
   where T: Debug {
