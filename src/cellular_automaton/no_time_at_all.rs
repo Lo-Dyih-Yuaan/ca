@@ -48,7 +48,7 @@ impl FromStream for State {
 	}
 }
 
-#[allow(dead_code)]
+#[allow(dead_code, unreachable_patterns)]
 pub fn rule(_nw: &State, n: &State, _ne: &State,
               w: &State, c: &State,   e: &State,
             _sw: &State, s: &State, _se: &State) -> State {
@@ -69,10 +69,7 @@ pub fn rule(_nw: &State, n: &State, _ne: &State,
 				//无信号不变化
 				if head0_sum + head1_sum == 0 {Wire}
 				//丁字路口倍增传输
-				else if let (Head(b),Wire,Wire,Empty) = (n,w,e,s) {Head(*b)}
-				else if let (Head(b),Wire,Wire,Empty) = (s,w,e,n) {Head(*b)}
-				else if let (Head(b),Wire,Wire,Empty) = (e,n,s,w) {Head(*b)}
-				else if let (Head(b),Wire,Wire,Empty) = (w,n,s,e) {Head(*b)}
+				else if d4_symmetry!(Head(_),Wire,Wire,Empty, (n,w,e,s)) {Head(head1_sum == 1)}
 				//丁字路口外多出口阻塞
 				else if wire_sum >= 2 {Wire}
 				//单输入不变传输
@@ -84,7 +81,7 @@ pub fn rule(_nw: &State, n: &State, _ne: &State,
 	}
 }
 
-#[allow(dead_code)]
+#[allow(dead_code, unreachable_patterns)]
 pub fn rule_bi_ter(binary: &'static[usize], ternary: &'static[usize]) -> BoxRule<State> {
 	Box::new(move |_nw: &State, n: &State, _ne: &State,
 	                 w: &State, c: &State,   e: &State,
@@ -107,10 +104,7 @@ pub fn rule_bi_ter(binary: &'static[usize], ternary: &'static[usize]) -> BoxRule
 					//无信号不变化
 					if head_sum == 0 {Wire}
 					//丁字路口倍增传输
-					else if let (Head(b),Wire,Wire,Empty) = (n,w,e,s) {Head(*b)}
-					else if let (Head(b),Wire,Wire,Empty) = (s,w,e,n) {Head(*b)}
-					else if let (Head(b),Wire,Wire,Empty) = (e,n,s,w) {Head(*b)}
-					else if let (Head(b),Wire,Wire,Empty) = (w,n,s,e) {Head(*b)}
+					else if d4_symmetry!(Head(_),Wire,Wire,Empty, (n,w,e,s)) {Head(head1_sum == 1)}
 					//丁字路口外多出口阻塞
 					else if wire_sum >= 2 {Wire}
 					//二元门
