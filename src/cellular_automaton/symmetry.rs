@@ -3,6 +3,9 @@ macro_rules! d4_symmetry {
 	(@ ;
 	 $p11:pat,$p12:pat,$p13:pat,$p21:pat,$p23:pat,$p31:pat,$p32:pat,$p33:pat) => 
 		{($p11,$p12,$p13,$p21,$p23,$p31,$p32,$p33)};
+	(@ ;
+		$p1:pat,$p2:pat,$p3:pat,$p4:pat) => 
+		   {($p1,$p2,$p3,$p4)};
 	(@ rotate $($i:ident)*; //旋转（向右90°）
 	 $p11:pat, $p12:pat, $p13:pat,
 	 $p21:pat,           $p23:pat,
@@ -12,6 +15,15 @@ macro_rules! d4_symmetry {
 			$p32,       $p12,
 			$p33, $p23, $p13)
 	};
+	(@ rotate $($i:ident)*; //旋转（向右90°）
+	         $pn:pat,
+	 $pw:pat,         $pe:pat,
+	         $ps:pat) => {
+		d4_symmetry!(@ $($i)*;
+			    $pw,
+			$ps,    $pn,
+			    $pe)
+	};
 	(@ flip $($i:ident)*; //翻转（垂直）
 	 $p11:pat, $p12:pat, $p13:pat,
 	 $p21:pat,           $p23:pat,
@@ -20,6 +32,15 @@ macro_rules! d4_symmetry {
 			$p31, $p32, $p33,
 			$p21,       $p23,
 			$p11, $p12, $p13)
+	};
+	(@ flip $($i:ident)*; //翻转（垂直）
+	         $pn:pat,
+	 $pw:pat,         $pe:pat,
+	         $ps:pat) => {
+		d4_symmetry!(@ $($i)*;
+			    $ps,
+			$pw,    $pe,
+			    $pn)
 	};
 	($t:ty;$p11:pat,$p12:pat,$p13:pat,$p21:pat,$p23:pat,$p31:pat,$p32:pat,$p33:pat) => {
 		Box::new(
@@ -43,44 +64,20 @@ macro_rules! d4_symmetry {
 			d4_symmetry!(@flip rotate rotate rotate; $p11,$p12,$p13,$p21,$p23,$p31,$p32,$p33)
 		}
 	};
-}
-
-/*macro_rules! non_totalistic_v {
-	(@ ;
-	 $p1:pat,$p2:pat,$p3:pat,$p4:pat) => 
-		{($p1,$p2,$p3,$p4)};
-	(@ rotate $($i:ident)*; //旋转（向右90°）
-	         $pn:pat,
-	 $pw:pat,         $pe:pat,
-	         $ps:pat) => {
-		non_totalistic_v!(@ $($i)*;
-			    $pw,
-			$ps,    $pn,
-			    $pe)
-	};
-	(@ flip $($i:ident)*; //翻转（垂直）
-	         $pn:pat,
-	 $pw:pat,         $pe:pat,
-	         $ps:pat) => {
-		non_totalistic_v!(@ $($i)*;
-			    $ps,
-			$pw,    $pe,
-			    $pn)
-	};
-	($p1:pat,$p2:pat,$p3:pat,$p4:pat , $x:expr) => {
+	($p1:pat,$p2:pat,$p3:pat,$p4:pat, $x:expr) => {
 		matches!{
 			$x,
-			non_totalistic_v!(@; $p1,$p2,$p3,$p4) |
-			non_totalistic_v!(@rotate; $p1,$p2,$p3,$p4) |
-			non_totalistic_v!(@rotate rotate; $p1,$p2,$p3,$p4) |
-			non_totalistic_v!(@rotate rotate rotate; $p1,$p2,$p3,$p4) |
-			non_totalistic_v!(@flip; $p1,$p2,$p3,$p4) |
-			non_totalistic_v!(@flip rotate; $p1,$p2,$p3,$p4) |
-			non_totalistic_v!(@flip rotate rotate; $p1,$p2,$p3,$p4) |
-			non_totalistic_v!(@flip rotate rotate rotate; $p1,$p2,$p3,$p4)
+			d4_symmetry!(@; $p1,$p2,$p3,$p4) |
+			d4_symmetry!(@rotate; $p1,$p2,$p3,$p4) |
+			d4_symmetry!(@rotate rotate; $p1,$p2,$p3,$p4) |
+			d4_symmetry!(@rotate rotate rotate; $p1,$p2,$p3,$p4) |
+			d4_symmetry!(@flip; $p1,$p2,$p3,$p4) |
+			d4_symmetry!(@flip rotate; $p1,$p2,$p3,$p4) |
+			d4_symmetry!(@flip rotate rotate; $p1,$p2,$p3,$p4) |
+			d4_symmetry!(@flip rotate rotate rotate; $p1,$p2,$p3,$p4)
 		}
-	}
-}*/
+	};
+}
 
 /*使用该宏可能引起大量警告，建议使用`#[allow(unreachable_patterns)]`阻止*/
 macro_rules! non_totalistic_closure {
