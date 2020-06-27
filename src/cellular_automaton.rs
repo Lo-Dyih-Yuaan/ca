@@ -91,6 +91,7 @@ pub mod no_time_at_all;
 pub mod langton_s_ant;
 pub mod bsfkl;
 pub mod von_neumann29;
+pub mod nobili32;
 
 #[derive(Clone)]
 pub struct Pattern<T> {

@@ -29,6 +29,7 @@ macro_rules! rule {
 	(@fun NoTimeAtAll - B $($b:literal)* / T $($t:literal)*) =>
 		{cellular_automaton::no_time_at_all::rule_bi_ter(&[$($b),*],&[$($t),*])};
 	(@fun von Neumann 29) => {cellular_automaton::von_neumann29::rule};
+	(@fun Nobili 32) => {cellular_automaton::nobili32::rule};
 	//规则字符串
 	(@str non-totalistic B $b:literal / S $s:literal) =>
 		{format!("B{}/S{}",$b,$s)};
@@ -568,14 +569,14 @@ fn main() {
 		".-01@$"
 	);*/
 	print_von_neumann_rule_tree!(
-		rule!{von Neumann 29},
+		rule!{Nobili 32},
 		concat!{
 			"USS0S1S00S01S10S11S000",
 			"To>_To^_To<_Tov_",
 			"To>~To^~To<~Tov~",
 			"Ts>_Ts^_Ts<_Tsv_",
 			"Ts>~Ts^~Ts<~Tsv~",
-			"C__C_~C~_C~~"
+			"C__C_~C~_C~~C-C|C+"
 		}
 	);
 }
