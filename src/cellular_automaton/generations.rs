@@ -1,6 +1,7 @@
 use std::fmt::Debug;
 use std::fmt::Display;
 use std::fmt::Formatter;
+use std::num::NonZeroU32;
 use super::u32_print_str;
 use super::FromStream;
 use super::BoxRule;
@@ -47,69 +48,37 @@ impl FromStream for Cell {
 }
 
 #[allow(dead_code)]
-pub fn rule(number: u32, birth: &'static[usize], save: &'static[usize]) -> BoxRule<Cell> {
-	if number == 0 {
-		Box::new(move |nw: &Cell, n: &Cell, ne: &Cell,
-		                w: &Cell, c: &Cell,  e: &Cell,
-		               sw: &Cell, s: &Cell, se: &Cell| -> Cell {
-			let [out_sum] = count!{$
-				Live;
-				*nw,*n,*ne,*w,*e,*sw,*s,*se
-			};
-			match c {
-				Live => if save.contains(&out_sum) {Live} else {Dead},
-				Dead => if birth.contains(&out_sum) {Live} else {Dead},
-				_ => unreachable!()
-			}
-		})
-	} else {
-		Box::new(move |nw: &Cell, n: &Cell, ne: &Cell,
-		                w: &Cell, c: &Cell,  e: &Cell,
-		               sw: &Cell, s: &Cell, se: &Cell| -> Cell {
-			if let Generations(n) = c {
-				return
-					if n+1 < number {Generations(n+1)}
-					else if n+1 == number {Dead}
-					else {unreachable!()};
-			}
-			let [out_sum] = count!{$
-				Live;
-				*nw,*n,*ne,*w,*e,*sw,*s,*se
-			};
-			match c {
-				Live => if save.contains(&out_sum) {Live} else {Generations(0)},
-				Dead => if birth.contains(&out_sum) {Live} else {Dead},
-				_ => unreachable!()
-			}
-		})
-	}
+pub fn rule(number: NonZeroU32, birth: &'static[usize], save: &'static[usize]) -> BoxRule<Cell> {
+	let number = number.get();
+	Box::new(move |nw: &Cell, n: &Cell, ne: &Cell,
+	                w: &Cell, c: &Cell,  e: &Cell,
+	               sw: &Cell, s: &Cell, se: &Cell| -> Cell {
+		let [out_sum] = count!{$ Live in nw,n,ne,w,e,sw,s,se};
+		match c {
+			Live => if save.contains(&out_sum) {Live} else {Generations(0)},
+			Dead => if birth.contains(&out_sum) {Live} else {Dead},
+			Generations(n) =>
+				if n+1 < number {Generations(n+1)}
+				else if n+1 == number {Dead}
+				else {unreachable!()}
+		}
+	})
 }
 #[allow(unreachable_patterns, dead_code)]
-pub fn non_totalistic_rule(number: u32, birth: &'static str, save: &'static str) -> BoxRule<Cell> {
+pub fn non_totalistic_rule(number: NonZeroU32, birth: &'static str, save: &'static str) -> BoxRule<Cell> {
+	let number = number.get();
 	let b_fun = non_totalistic_closure!(Cell; Live, birth);
 	let s_fun = non_totalistic_closure!(Cell; Live, save);
-	if number == 0 {
-		Box::new(move |nw: &Cell, n: &Cell, ne: &Cell,
-		                w: &Cell, c: &Cell,  e: &Cell,
-		               sw: &Cell, s: &Cell, se: &Cell| -> Cell {
-			match c {
-				Live => if s_fun(nw,n,ne,w,e,sw,s,se) {Live} else {Dead},
-				Dead => if b_fun(nw,n,ne,w,e,sw,s,se) {Live} else {Dead},
-				_ => unreachable!()
-			}
-		})
-	} else {
-		Box::new(move |nw: &Cell, n: &Cell, ne: &Cell,
-		                w: &Cell, c: &Cell,  e: &Cell,
-		               sw: &Cell, s: &Cell, se: &Cell| -> Cell {
-			match c {
-				Live => if s_fun(nw,n,ne,w,e,sw,s,se) {Live} else {Generations(0)},
-				Dead => if b_fun(nw,n,ne,w,e,sw,s,se) {Live} else {Dead},
-				Generations(n) =>
-					if n+1 < number {Generations(n+1)}
-					else if n+1 == number {Dead}
-					else {unreachable!()}
-			}
-		})
-	}
+	Box::new(move |nw: &Cell, n: &Cell, ne: &Cell,
+	                w: &Cell, c: &Cell,  e: &Cell,
+	               sw: &Cell, s: &Cell, se: &Cell| -> Cell {
+		match c {
+			Live => if s_fun(nw,n,ne,w,e,sw,s,se) {Live} else {Generations(0)},
+			Dead => if b_fun(nw,n,ne,w,e,sw,s,se) {Live} else {Dead},
+			Generations(n) =>
+				if n+1 < number {Generations(n+1)}
+				else if n+1 == number {Dead}
+				else {unreachable!()}
+		}
+	})
 }

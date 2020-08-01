@@ -17,17 +17,17 @@ macro_rules! rule {
 	(@fun non-totalistic B $b:literal / S $s:literal) =>
 		{cellular_automaton::life::non_totalistic_rule($b,$s)};
 	(@fun B $($b:literal)* / S $($s:literal)* / G $g:literal) =>
-		{cellular_automaton::generations::rule($g,&[$($b),*],&[$($s),*])};
+		{cellular_automaton::generations::rule(std::num::NonZeroU32::new($g).unwrap(),&[$($b),*],&[$($s),*])};
 	(@fun non-totalistic B $b:literal / S $s:literal / G $g:literal) =>
-		{cellular_automaton::generations::non_totalistic_rule($g,$b,$s)};
+		{cellular_automaton::generations::non_totalistic_rule(std::num::NonZeroU32::new($g).unwrap(),$b,$s)};
 	(@fun B $($b:literal)* / S $($s:literal)* / F $($f:literal)* / K $($k:literal)* / L $($l:literal)*) =>
 		{cellular_automaton::bsfkl::rule(&[$($b),*],&[$($s),*],&[$($f),*],&[$($k),*],&[$($l),*])};
 	(@fun Langton's Ant $($t:tt)+) =>
 		{cellular_automaton::langton_s_ant::rule(concat!{$(stringify!($t)),+})};
 	(@fun WireWorld) => {cellular_automaton::wireworld::rule};
-	(@fun NoTimeAtAll) => {cellular_automaton::no_time_at_all::rule};
+	(@fun NoTimeAtAll) => {cellular_automaton::no_time_at_all::rule(&[1],&[1])};
 	(@fun NoTimeAtAll - B $($b:literal)* / T $($t:literal)*) =>
-		{cellular_automaton::no_time_at_all::rule_bi_ter(&[$($b),*],&[$($t),*])};
+		{cellular_automaton::no_time_at_all::rule(&[$($b),*],&[$($t),*])};
 	(@fun von Neumann 29) => {cellular_automaton::von_neumann29::rule};
 	(@fun Nobili 32) => {cellular_automaton::nobili32::rule};
 	//规则字符串
@@ -430,7 +430,7 @@ fn main() {
 		"##.$#.#$.##$",
 		3
 	};
-	/*
+	
 	check!{oscillator
 		rule!{B 3 / S 2 3 / G 6}, ".",
 		generations_from_rle("2.A$.3A$.AFCA$3.2CA$.2FCA$EFCB$.D!"),
@@ -480,8 +480,8 @@ fn main() {
 		rule!{B 3 / S 2 3 / G 15}, ".",
 		generations_from_rle("P5.A$.M2.P3A$L2N.HAFCA$.KNPNIH2CA$.J3K2FCA$2.IKEFCB$3.H.D!"),
 		32
-	};*/
-	let temp = [
+	};
+	/*let temp = [
 		"2.A$.3A$.AFCA$3.2CA$.2FCA$EFCB$.D!",
 		"3.A$2.3A$.HAFCA$3.H2CA$2.2FCA$.EFCB$H.D!",
 		"4.A$3.3A$2.HAFCA$3.IH2CA$3.2FCA$I.EFCB$.H.D!",
@@ -493,15 +493,17 @@ fn main() {
 		"6.A$.M3.3A$L2N.HAFCA$.KN.NIH2CA$.J3K2FCA$2.IKEFCB$3.H.D!",
 		"P5.A$.M2.P3A$L2N.HAFCA$.KNPNIH2CA$.J3K2FCA$2.IKEFCB$3.H.D!"
 	];
-	for n in 0usize..10usize {
-		let rule = cellular_automaton::generations::rule(n as u32 + 6,&[3],&[2,3]);
+	for n in 0..10 {
+		let rule = cellular_automaton::generations::rule(
+			std::num::NonZeroU32::new(n as u32 + 6).unwrap(),
+			&[3], &[2,3]);
 		let ground = from_stream!(".");
 		let mut p = Pattern::try_from(generations_from_rle(temp[n])).ok().unwrap();
 		for _ in 0..16 {
 			p = p.infinte_evolve(&ground, &rule).0;
 		}
 		println!("{}", p);
-	}
+	}*/
 	check!{oscillator
 		rule!{von Neumann 29}, "U",
 		"To>~Tov_$To^_To<_$",
@@ -560,15 +562,15 @@ fn main() {
 		},
 		12
 	};*/
-	print_rule_tree!(
+	/*print_rule_tree!(
 		rule!{B 3 4 / S 2 3 4 / F 0 1 2 3 6 / K 2 3 4 5 / L 0 2 3 4 5},
 		".#@"
-	);
-	/*print_von_neumann_rule_tree!(
-		rule!{NoTimeAtAll-B 0 1/T 0 3},
-		".-01@$"
 	);*/
 	print_von_neumann_rule_tree!(
+		rule!{NoTimeAtAll-B 1/T 1},
+		".-01@"
+	);
+	/*print_von_neumann_rule_tree!(
 		rule!{Nobili 32},
 		concat!{
 			"USS0S1S00S01S10S11S000",
@@ -578,7 +580,7 @@ fn main() {
 			"Ts>~Ts^~Ts<~Tsv~",
 			"C__C_~C~_C~~C-C|C+"
 		}
-	);
+	);*/
 }
 /*
 function f(str) {

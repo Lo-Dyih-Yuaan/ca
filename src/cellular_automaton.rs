@@ -20,22 +20,22 @@ pub mod golly;
  */
 macro_rules! count {
 	(@index) => {0};
-	(@index $e:expr) => {1};
-	(@index $e1:expr, $e2:expr) => {2};
-	(@index $e1:expr, $e2:expr, $e3:expr) => {3};
-	(@if $c:expr, $e:expr, $m:expr; $($os:expr),*) => {
-		if $e == $m {$c[count!{@index $($os),*}] += 1;}
+	(@index $e:tt) => {1};
+	(@index $e1:tt, $e2:tt) => {2};
+	(@index $e1:tt, $e2:tt, $e3:tt) => {3};
+	(@if $c:expr, $e:expr, $m:pat if $($os:pat),*) => {
+		if let $m = $e {$c[count!{@index $($os),*}] += 1;}
 	};
-	(@if $c:expr, $e:expr, $m:expr, $($ms:expr),+; $($os:expr),*) => {
-		if $e == $m {$c[count!{@index $($os),*}] += 1;}
-		else {count!{@if $c, $e, $($ms),+; $($os,)* $m}}
+	(@if $c:expr, $e:expr, $m:pat, $($ms:pat),+ if $($os:pat),*) => {
+		if let $m = $e {$c[count!{@index $($os),*}] += 1;}
+		else {count!{@if $c, $e, $($ms),+ if $($os,)* $m}}
 	};
-	($d:tt $($m:expr),+ ; $($e:expr),*) => {{
+	($d:tt $($m:pat),+ in $($e:expr),*) => {{
 		let mut temp: [usize; count!(@index $($m),+)] =
 			[0; count!(@index $($m),+)];
 		macro_rules! __count {
 			($d arg:expr) => {
-				count!{@if temp, $d arg, $($m),+;}
+				count!{@if temp, $d arg, $($m),+ if}
 			};
 		}
 		$(__count!($e);)*
