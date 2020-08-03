@@ -8,47 +8,6 @@ macro_rules! from_stream {
 		{<_ as cellular_automaton::FromStream>::from_stream($e).unwrap().1}
 }
 
-macro_rules! rule {
-	//规则函数
-	(@fun B $($b:literal)* / S $($s:literal)*) =>
-		{cellular_automaton::life::rule(&[$($b),*],&[$($s),*])};
-	(@fun B $($b:literal)* / S $($s:literal)* H) =>
-		{cellular_automaton::life::rule_h(&[$($b),*],&[$($s),*])};
-	(@fun non-totalistic B $b:literal / S $s:literal) =>
-		{cellular_automaton::life::non_totalistic_rule($b,$s)};
-	(@fun B $($b:literal)* / S $($s:literal)* / G $g:literal) =>
-		{cellular_automaton::generations::rule(std::num::NonZeroU32::new($g).unwrap(),&[$($b),*],&[$($s),*])};
-	(@fun non-totalistic B $b:literal / S $s:literal / G $g:literal) =>
-		{cellular_automaton::generations::non_totalistic_rule(std::num::NonZeroU32::new($g).unwrap(),$b,$s)};
-	(@fun B $($b:literal)* / S $($s:literal)* / F $($f:literal)* / K $($k:literal)* / L $($l:literal)*) =>
-		{cellular_automaton::bsfkl::rule(&[$($b),*],&[$($s),*],&[$($f),*],&[$($k),*],&[$($l),*])};
-	(@fun Langton's Ant $s:literal) => {cellular_automaton::langton_s_ant::rule($s)};
-	(@fun Langton's Ant $($t:tt)+) =>
-		{cellular_automaton::langton_s_ant::rule(concat!{$(stringify!($t)),+})};
-	(@fun WireWorld) => {cellular_automaton::wireworld::rule};
-	(@fun LogicLand) => {cellular_automaton::logic_land::rule};
-	(@fun NoTimeAtAll) => {cellular_automaton::no_time_at_all::rule(&[1],&[1])};
-	(@fun NoTimeAtAll - B $($b:literal)* / T $($t:literal)*) =>
-		{cellular_automaton::no_time_at_all::rule(&[$($b),*],&[$($t),*])};
-	(@fun von Neumann 29) => {cellular_automaton::von_neumann29::rule};
-	(@fun Nobili 32) => {cellular_automaton::nobili32::rule};
-	//规则字符串
-	(@str non-totalistic B $b:literal / S $s:literal) =>
-		{format!("B{}/S{}",$b,$s)};
-	(@str non-totalistic B $b:literal / S $s:literal / G $g:literal) =>
-		{format!("B{}/S{}/G{}",$b,$s,$g)};
-	(@str Langton's Ant $s:literal) => {concat!{"Langton's Ant ", $s}};
-	(@str Langton's Ant $($t:tt)+) =>
-		{concat!{"Langton's Ant ", $(stringify!($t)),+}};
-	(@str von Neumann 29) => {"von Neumann 29"};
-	(@str $($t:tt)*) => {concat!{$(stringify!($t)),+}};
-	//输出
-	(@display B $($b:literal)* / S $($s:literal)* H) => {"{:x}"};
-	(@display $($t:tt)*) => {"{}"};
-	//输入
-	($($t:tt)+) => {(rule!{@fun $($t)+}, rule!{@str $($t)+}, rule!{@display $($t)+})};
-}
-
 macro_rules! print_rule_tree {
 	($rule:expr, $states:expr) => {{
 		let (rf, rs, _) = $rule;
