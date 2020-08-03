@@ -22,9 +22,11 @@ macro_rules! rule {
 		{cellular_automaton::generations::non_totalistic_rule(std::num::NonZeroU32::new($g).unwrap(),$b,$s)};
 	(@fun B $($b:literal)* / S $($s:literal)* / F $($f:literal)* / K $($k:literal)* / L $($l:literal)*) =>
 		{cellular_automaton::bsfkl::rule(&[$($b),*],&[$($s),*],&[$($f),*],&[$($k),*],&[$($l),*])};
+	(@fun Langton's Ant $s:literal) => {cellular_automaton::langton_s_ant::rule($s)};
 	(@fun Langton's Ant $($t:tt)+) =>
 		{cellular_automaton::langton_s_ant::rule(concat!{$(stringify!($t)),+})};
 	(@fun WireWorld) => {cellular_automaton::wireworld::rule};
+	(@fun LogicLand) => {cellular_automaton::logic_land::rule};
 	(@fun NoTimeAtAll) => {cellular_automaton::no_time_at_all::rule(&[1],&[1])};
 	(@fun NoTimeAtAll - B $($b:literal)* / T $($t:literal)*) =>
 		{cellular_automaton::no_time_at_all::rule(&[$($b),*],&[$($t),*])};
@@ -35,6 +37,7 @@ macro_rules! rule {
 		{format!("B{}/S{}",$b,$s)};
 	(@str non-totalistic B $b:literal / S $s:literal / G $g:literal) =>
 		{format!("B{}/S{}/G{}",$b,$s,$g)};
+	(@str Langton's Ant $s:literal) => {concat!{"Langton's Ant ", $s}};
 	(@str Langton's Ant $($t:tt)+) =>
 		{concat!{"Langton's Ant ", $(stringify!($t)),+}};
 	(@str von Neumann 29) => {"von Neumann 29"};
@@ -48,20 +51,22 @@ macro_rules! rule {
 
 macro_rules! print_rule_tree {
 	($rule:expr, $states:expr) => {{
-		let (rf, _, _) = $rule;
+		let (rf, rs, _) = $rule;
 		let mut rt = cellular_automaton::golly::RuleTree::new(
 			Pattern::try_from(format!("{}$", $states)).ok().unwrap().get_data()[0].clone());
 		rt.create_tree(&rf);
+		println!("@RULE {}", rs);
 		println!("{:?}", rt);
 	}}
 }
 
 macro_rules! print_von_neumann_rule_tree {
 	($rule:expr, $states:expr) => {{
-		let (rf, _, _) = $rule;
+		let (rf, rs, _) = $rule;
 		let mut rt = cellular_automaton::golly::RuleTree::new(
 			Pattern::try_from(format!("{}$", $states)).ok().unwrap().get_data()[0].clone());
 		rt.create_von_neumann_tree(&rf);
+		println!("@RULE {}", rs);
 		println!("{:?}", rt);
 	}}
 }
@@ -567,8 +572,8 @@ fn main() {
 		".#@"
 	);*/
 	print_von_neumann_rule_tree!(
-		rule!{NoTimeAtAll-B 1/T 1},
-		".-01@"
+		rule!{Langton's Ant "LLR"},
+		"ABCA^A>AvA<B^B>BvB<C^C>CvC<"
 	);
 	/*print_von_neumann_rule_tree!(
 		rule!{Nobili 32},

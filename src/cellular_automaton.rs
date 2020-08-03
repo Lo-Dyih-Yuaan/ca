@@ -23,6 +23,13 @@ macro_rules! count {
 	(@index $e:tt) => {1};
 	(@index $e1:tt, $e2:tt) => {2};
 	(@index $e1:tt, $e2:tt, $e3:tt) => {3};
+	(@index $e1:tt, $e2:tt, $e3:tt, $e4:tt) => {4};
+	(@index $e1:tt, $e2:tt, $e3:tt, $e4:tt, $e5:tt) => {5};
+	(@index $e1:tt, $e2:tt, $e3:tt, $e4:tt, $e5:tt, $e6:tt) => {6};
+	(@index $e1:tt, $e2:tt, $e3:tt, $e4:tt, $e5:tt, $e6:tt, $e7:tt) => {7};
+	(@index $e1:tt, $e2:tt, $e3:tt, $e4:tt, $e5:tt, $e6:tt, $e7:tt, $e8:tt) => {8};
+	(@index $e1:tt, $e2:tt, $e3:tt, $e4:tt, $e5:tt, $e6:tt, $e7:tt, $e8:tt, $e9:tt) => {9};
+	(@index $e1:tt, $e2:tt, $e3:tt, $e4:tt, $e5:tt, $e6:tt, $e7:tt, $e8:tt, $e9:tt, $e10:tt) => {10};
 	(@if $c:expr, $e:expr, $m:pat if $($os:pat),*) => {
 		if let $m = $e {$c[count!{@index $($os),*}] += 1;}
 	};
@@ -87,6 +94,7 @@ impl FromStream for u32 {
 pub mod life;
 pub mod generations;
 pub mod wireworld;
+pub mod logic_land;
 pub mod no_time_at_all;
 pub mod langton_s_ant;
 pub mod bsfkl;
