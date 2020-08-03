@@ -225,13 +225,13 @@ pub fn rule(_nw: &State, n: &State, _ne: &State,
 			else if let Cross(Some(West), _) = w {AuxiliaryAcive}
 			else if is_exist!(GateOutput(Active) in n,e,s,w) {ActiveWire}
 			else {InactiveWire},
-		ActiveWire =>
-			if is_exist!(InhibitedWire in n,e,s,w) && !is_exist!{AuxiliaryAcive|Cross(_,_) in n,e,s,w}
-				{InhibitedWire}
-			else if is_exist!(InhibitedWire in n,e,s,w) && is_exist!{Cross(_,_)|OrGate(Active) in n,e,s,w}
-				{AuxiliaryInhibited}
+		ActiveWire => {
+			let has_ihw = is_exist!(InhibitedWire in n,e,s,w);
+			if has_ihw && !is_exist!{AuxiliaryAcive|Cross(_,_) in n,e,s,w} {InhibitedWire}
+			else if has_ihw && is_exist!{Cross(_,_)|OrGate(Active) in n,e,s,w} {AuxiliaryInhibited}
 			else if is_exist!(GateOutput(Inactive) in n,e,s,w) {InhibitedWire}
 			else {ActiveWire}
+		},
 		InhibitedWire => InactiveWire,
 		AuxiliaryAcive =>
 			if count!{$ AuxiliaryAcive,Cross(_,_) in n,e,s,w} == [0,1] {
@@ -272,7 +272,8 @@ pub fn rule(_nw: &State, n: &State, _ne: &State,
 			if is_exist!(ActiveWire in n,e,s,w) {!*c} else {*c},
 		NorGate(Active)|OrGate(Active)|XorGate(Active)|AndGate(Active) =>
 			if !is_exist!(ActiveWire|AuxiliaryAcive in n,e,s,w) {!*c} else {*c},
-		TFlipFlop(_) => if is_exist!(InhibitedWire in n,e,s,w) {!*c} else {*c},
+		TFlipFlop(_) =>
+			if is_exist!(InhibitedWire in n,e,s,w) {!*c} else {*c},
 		Cross(None, None) => {
 			let h =
 				if *e == ActiveWire {
@@ -293,19 +294,17 @@ pub fn rule(_nw: &State, n: &State, _ne: &State,
 			Cross(h, v)
 		},
 		Cross(Some(d), None) => {
-			let h =
-				if *e == ActiveWire && *w == ActiveWire {return *c;}
-				else if *d.get(e, w) == ActiveWire {Some(*d)}
-				else if *e != ActiveWire && *w != ActiveWire {None}
-				else if *n != ActiveWire && *s != ActiveWire {None}
-				else {return *c};
 			let v = match (n, s) {
 				(ActiveWire, ActiveWire) => {return *c;},
 				(ActiveWire, _) => Some(North),
 				(_, ActiveWire) => Some(South),
 				_ => None
 			};
-			Cross(h, v)
+			if *e == ActiveWire && *w == ActiveWire {*c}
+			else if *d.get(e, w) == ActiveWire {Cross(Some(*d), v)}
+			else if *e != ActiveWire && *w != ActiveWire {Cross(None, v)}
+			else if *n != ActiveWire && *s != ActiveWire {Cross(None, v)}
+			else {*c}
 		},
 		Cross(None, Some(d)) => {
 			let h = match (e, w) {
@@ -314,13 +313,11 @@ pub fn rule(_nw: &State, n: &State, _ne: &State,
 				(_, ActiveWire) => Some(West),
 				_ => None
 			};
-			let v =
-				if *n == ActiveWire && *s == ActiveWire {return *c;}
-				else if *d.get(n, s) == ActiveWire {Some(*d)}
-				else if *n != ActiveWire && *s != ActiveWire {None}
-				else if *e != ActiveWire && *w != ActiveWire {None}
-				else {return *c};
-			Cross(h, v)
+			if *n == ActiveWire && *s == ActiveWire {*c}
+			else if *d.get(n, s) == ActiveWire {Cross(h, Some(*d))}
+			else if *n != ActiveWire && *s != ActiveWire {Cross(h, None)}
+			else if *e != ActiveWire && *w != ActiveWire {Cross(h, None)}
+			else {*c}
 		},
 		Cross(Some(dh), Some(dv)) => {
 			let h = dh.get(e, w);
