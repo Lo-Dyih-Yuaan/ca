@@ -234,7 +234,7 @@ pub fn rule(_nw: &State, n: &State, _ne: &State,
 		},
 		InhibitedWire => InactiveWire,
 		AuxiliaryAcive =>
-			if count!{$ AuxiliaryAcive,Cross(_,_) in n,e,s,w} == [0,1] {
+			if count!{AuxiliaryAcive,Cross(_,_) in n,e,s,w} == [0,1] {
 				if let Cross(_,None) = n {InhibitedWire}
 				else if let Cross(None,_) = e {InhibitedWire}
 				else if let Cross(_,None) = s {InhibitedWire}
@@ -243,7 +243,7 @@ pub fn rule(_nw: &State, n: &State, _ne: &State,
 			} else {AuxiliaryAcive},
 		AuxiliaryInhibited => InhibitedWire,
 		GateOutput(Inactive) => {
-			let gates = count!{$
+			let gates = count!{
 				NorGate(Active),  OrGate(Active),  XorGate(Active),  AndGate(Active),  TFlipFlop(Active),
 				NorGate(Inactive),OrGate(Inactive),XorGate(Inactive),AndGate(Inactive),TFlipFlop(Inactive)
 			in n,e,s,w};
@@ -256,7 +256,7 @@ pub fn rule(_nw: &State, n: &State, _ne: &State,
 			else {*c}
 		},
 		GateOutput(Active) => {
-			let gates = count!{$
+			let gates = count!{
 				NorGate(Active),  OrGate(Active),  XorGate(Active),  AndGate(Active),  TFlipFlop(Active),
 				NorGate(Inactive),OrGate(Inactive),XorGate(Inactive),AndGate(Inactive),TFlipFlop(Inactive)
 			in n,e,s,w};

@@ -19,6 +19,10 @@ pub mod golly;
  * 匹配使用`==`。
  */
 macro_rules! count {
+	(@nest $($body:tt)*) => {
+		macro_rules! __with_dollar_sign { $($body)* }
+		__with_dollar_sign!($);
+	};
 	(@index) => {0};
 	(@index $e:tt) => {1};
 	(@index $e1:tt, $e2:tt) => {2};
@@ -37,13 +41,17 @@ macro_rules! count {
 		if let $m = $e {$c[count!{@index $($os),*}] += 1;}
 		else {count!{@if $c, $e, $($ms),+ if $($os,)* $m}}
 	};
-	($d:tt $($m:pat),+ in $($e:expr),*) => {{
+	($($m:pat),+ in $($e:expr),*) => {{
 		let mut temp: [usize; count!(@index $($m),+)] =
 			[0; count!(@index $($m),+)];
-		macro_rules! __count {
-			($d arg:expr) => {
-				count!{@if temp, $d arg, $($m),+ if}
-			};
+		count!{@nest
+			($d:tt) => {
+				macro_rules! __count {
+					($d arg:expr) => {
+						count!{@if temp, $d arg, $($m),+ if}
+					};
+				}
+			}
 		}
 		$(__count!($e);)*
 		temp

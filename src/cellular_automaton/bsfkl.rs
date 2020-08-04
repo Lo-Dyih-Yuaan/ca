@@ -48,7 +48,7 @@ pub fn rule(bs: &'static[usize], ss: &'static[usize],
 	                w: &Cell, c: &Cell,  e: &Cell,
 	               sw: &Cell, s: &Cell, se: &Cell| -> Cell {
 		let [live_count, destructive_count] =
-			count!{$ Live, Destructive in nw,n,ne,w,e,sw,s,se};
+			count!{Live, Destructive in nw,n,ne,w,e,sw,s,se};
 		match c {
 			Live =>
 				if ks.contains(&destructive_count) {Dead}

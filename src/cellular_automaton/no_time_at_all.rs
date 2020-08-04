@@ -64,7 +64,7 @@ pub fn rule(binary: &'static[usize], ternary: &'static[usize]) -> BoxRule<State>
 				if is_exist!(Tail in n,e,s,w) {Wire}
 				else {
 					let [wire_sum, head0_sum, head1_sum] =
-						count!{$ Wire, Head(false), Head(true) in n,e,s,w};
+						count!{Wire, Head(false), Head(true) in n,e,s,w};
 					let head_sum = head0_sum + head1_sum;
 					//无信号不变化
 					if head_sum == 0 {Wire}

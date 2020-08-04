@@ -53,7 +53,7 @@ pub fn rule(number: NonZeroU32, birth: &'static[usize], save: &'static[usize]) -
 	Box::new(move |nw: &Cell, n: &Cell, ne: &Cell,
 	                w: &Cell, c: &Cell,  e: &Cell,
 	               sw: &Cell, s: &Cell, se: &Cell| -> Cell {
-		let [out_sum] = count!{$ Live in nw,n,ne,w,e,sw,s,se};
+		let [out_sum] = count!{Live in nw,n,ne,w,e,sw,s,se};
 		match c {
 			Live => if save.contains(&out_sum) {Live} else {Generations(0)},
 			Dead => if birth.contains(&out_sum) {Live} else {Dead},
