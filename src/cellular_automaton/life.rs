@@ -74,3 +74,16 @@ pub fn non_totalistic_rule(birth: &'static str, save: &'static str) -> BoxRule<C
 		}
 	})
 }
+#[allow(unreachable_patterns, dead_code)]
+pub fn non_totalistic_rule_h(birth: &'static str, save: &'static str) -> BoxRule<Cell> {
+	let b_fun = non_totalistic_closure_h!(Cell; Live, birth);
+	let s_fun = non_totalistic_closure_h!(Cell; Live, save);
+	Box::new(move | nw: &Cell, n: &Cell, _ne: &Cell,
+	                 w: &Cell, c: &Cell,   e: &Cell,
+	               _sw: &Cell, s: &Cell,  se: &Cell| -> Cell {
+		match c {
+			Live => if s_fun(nw,w,n,s,e,se) {Live} else {Dead},
+			Dead => if b_fun(nw,w,n,s,e,se) {Live} else {Dead},
+		}
+	})
+}

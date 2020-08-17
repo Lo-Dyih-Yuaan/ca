@@ -44,15 +44,13 @@ macro_rules! count {
 	($($m:pat),+ in $($e:expr),*) => {{
 		let mut temp: [usize; count!(@index $($m),+)] =
 			[0; count!(@index $($m),+)];
-		count!{@nest
-			($d:tt) => {
-				macro_rules! __count {
-					($d arg:expr) => {
-						count!{@if temp, $d arg, $($m),+ if}
-					};
-				}
+		count!{@nest ($d:tt) => {
+			macro_rules! __count {
+				($d arg:expr) => {
+					count!{@if temp, $d arg, $($m),+ if}
+				};
 			}
-		}
+		}}
 		$(__count!($e);)*
 		temp
 	}};
@@ -108,6 +106,7 @@ pub mod langton_s_ant;
 pub mod bsfkl;
 pub mod von_neumann29;
 pub mod nobili32;
+pub mod hutton32;
 
 #[macro_export]
 macro_rules! rule {
@@ -124,13 +123,25 @@ macro_rules! rule {
 		$crate::cellular_automaton::
 			life::non_totalistic_rule($b,$s)
 	};
+	(@fun non-totalistic B $b:literal / S $s:literal H) => {
+		$crate::cellular_automaton::
+			life::non_totalistic_rule_h($b,$s)
+	};
 	(@fun B $($b:literal)* / S $($s:literal)* / G $g:literal) => {
 		$crate::cellular_automaton::
-			generations::rule(std::num::NonZeroU32::new($g).unwrap(),&[$($b),*],&[$($s),*])
+			generations::rule($g,&[$($b),*],&[$($s),*])
+	};
+	(@fun B $($b:literal)* / S $($s:literal)* / G $g:literal H) => {
+		$crate::cellular_automaton::
+			generations::rule_h($g,&[$($b),*],&[$($s),*])
 	};
 	(@fun non-totalistic B $b:literal / S $s:literal / G $g:literal) => {
 		$crate::cellular_automaton::
-			generations::non_totalistic_rule(std::num::NonZeroU32::new($g).unwrap(),$b,$s)
+			generations::non_totalistic_rule($g,$b,$s)
+	};
+	(@fun non-totalistic B $b:literal / S $s:literal / G $g:literal H) => {
+		$crate::cellular_automaton::
+			generations::non_totalistic_rule_h($g,$b,$s)
 	};
 	(@fun B $($b:literal)* / S $($s:literal)* / F $($f:literal)* / K $($k:literal)* / L $($l:literal)*) => {
 		$crate::cellular_automaton::
@@ -156,11 +167,16 @@ macro_rules! rule {
 	};
 	(@fun von Neumann 29) => {$crate::cellular_automaton::von_neumann29::rule};
 	(@fun Nobili 32) => {$crate::cellular_automaton::nobili32::rule};
+	(@fun Hutton 32) => {$crate::cellular_automaton::hutton32::rule};
 	//规则字符串
 	(@str non-totalistic B $b:literal / S $s:literal) =>
 		{format!("B{}/S{}",$b,$s)};
+	(@str non-totalistic B $b:literal / S $s:literal H) =>
+		{format!("B{}/S{}H",$b,$s)};
 	(@str non-totalistic B $b:literal / S $s:literal / G $g:literal) =>
 		{format!("B{}/S{}/G{}",$b,$s,$g)};
+	(@str non-totalistic B $b:literal / S $s:literal / G $g:literal H) =>
+		{format!("B{}/S{}/G{}H",$b,$s,$g)};
 	(@str Langton's Ant $s:literal) => {concat!{"Langton's Ant ", $s}};
 	(@str Langton's Ant $($t:tt)+) =>
 		{concat!{"Langton's Ant ", $(stringify!($t)),+}};
@@ -168,6 +184,9 @@ macro_rules! rule {
 	(@str $($t:tt)*) => {concat!{$(stringify!($t)),+}};
 	//输出
 	(@display B $($b:literal)* / S $($s:literal)* H) => {"{:x}"};
+	(@display non-totalistic B $b:literal / S $s:literal H) => {"{:x}"};
+	(@display B $($b:literal)* / S $($s:literal)* / G $g:literal H) => {"{:x}"};
+	(@display non-totalistic B $b:literal / S $s:literal / G $g:literal H) => {"{:x}"};
 	(@display $($t:tt)*) => {"{}"};
 	//输入
 	($($t:tt)+) => {(rule!{@fun $($t)+}, rule!{@str $($t)+}, rule!{@display $($t)+})};

@@ -48,8 +48,10 @@ impl FromStream for Cell {
 }
 
 #[allow(dead_code)]
-pub fn rule(number: NonZeroU32, birth: &'static[usize], save: &'static[usize]) -> BoxRule<Cell> {
-	let number = number.get();
+pub fn rule(number: u32, birth: &'static[usize], save: &'static[usize]) -> BoxRule<Cell> {
+	if number == 0 {
+		unreachable!();
+	}
 	Box::new(move |nw: &Cell, n: &Cell, ne: &Cell,
 	                w: &Cell, c: &Cell,  e: &Cell,
 	               sw: &Cell, s: &Cell, se: &Cell| -> Cell {
@@ -64,9 +66,32 @@ pub fn rule(number: NonZeroU32, birth: &'static[usize], save: &'static[usize]) -
 		}
 	})
 }
+
+#[allow(dead_code)]
+pub fn rule_h(number: u32, birth: &'static[usize], save: &'static[usize]) -> BoxRule<Cell> {
+	if number == 0 {
+		unreachable!();
+	}
+	Box::new(move | nw: &Cell, n: &Cell, _ne: &Cell,
+	                 w: &Cell, c: &Cell,   e: &Cell,
+	               _sw: &Cell, s: &Cell,  se: &Cell| -> Cell {
+		let [out_sum] = count!{Live in nw,n,w,e,s,se};
+		match c {
+			Live => if save.contains(&out_sum) {Live} else {Generations(0)},
+			Dead => if birth.contains(&out_sum) {Live} else {Dead},
+			Generations(n) =>
+				if n+1 < number {Generations(n+1)}
+				else if n+1 == number {Dead}
+				else {unreachable!()}
+		}
+	})
+}
+
 #[allow(unreachable_patterns, dead_code)]
-pub fn non_totalistic_rule(number: NonZeroU32, birth: &'static str, save: &'static str) -> BoxRule<Cell> {
-	let number = number.get();
+pub fn non_totalistic_rule(number: u32, birth: &'static str, save: &'static str) -> BoxRule<Cell> {
+	if number == 0 {
+		unreachable!();
+	}
 	let b_fun = non_totalistic_closure!(Cell; Live, birth);
 	let s_fun = non_totalistic_closure!(Cell; Live, save);
 	Box::new(move |nw: &Cell, n: &Cell, ne: &Cell,
@@ -75,6 +100,27 @@ pub fn non_totalistic_rule(number: NonZeroU32, birth: &'static str, save: &'stat
 		match c {
 			Live => if s_fun(nw,n,ne,w,e,sw,s,se) {Live} else {Generations(0)},
 			Dead => if b_fun(nw,n,ne,w,e,sw,s,se) {Live} else {Dead},
+			Generations(n) =>
+				if n+1 < number {Generations(n+1)}
+				else if n+1 == number {Dead}
+				else {unreachable!()}
+		}
+	})
+}
+
+#[allow(unreachable_patterns, dead_code)]
+pub fn non_totalistic_rule_h(number: u32, birth: &'static str, save: &'static str) -> BoxRule<Cell> {
+	if number == 0 {
+		unreachable!();
+	}
+	let b_fun = non_totalistic_closure_h!(Cell; Live, birth);
+	let s_fun = non_totalistic_closure_h!(Cell; Live, save);
+	Box::new(move | nw: &Cell, n: &Cell, _ne: &Cell,
+	                 w: &Cell, c: &Cell,   e: &Cell,
+	               _sw: &Cell, s: &Cell,  se: &Cell| -> Cell {
+		match c {
+			Live => if s_fun(nw,w,n,s,e,se) {Live} else {Generations(0)},
+			Dead => if b_fun(nw,w,n,s,e,se) {Live} else {Dead},
 			Generations(n) =>
 				if n+1 < number {Generations(n+1)}
 				else if n+1 == number {Dead}
