@@ -1,15 +1,17 @@
 use std::fmt::Debug;
 use std::fmt::Formatter;
+use std::collections::BTreeMap;
 use super::RuleType;
 
-#[derive(PartialEq, Eq, Clone, Debug)]
-enum RuleTreeNode<T> {
-	Leaf(usize, Vec<T>),
-	NotLeaf(usize, Vec<usize>),
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug)]
+struct RuleTreeNode {
+	height: usize,
+	children: Vec<usize> //height为1时为state的序号，大于1时为节点序号
 }
 
 pub struct RuleTree<T> {
-	rules: Vec<RuleTreeNode<T>>,
+	rules: Vec<RuleTreeNode>,
+	map: BTreeMap<RuleTreeNode, usize>,//内容与rules一致，用于加速
 	states: Vec<T>,
 	params: [T; 9],
 	neighbors: usize,
@@ -19,7 +21,8 @@ impl<T: Clone> RuleTree<T> {
 	pub fn new(ss: Vec<T>) -> Self {
 		let d = ss.first().unwrap();
 		RuleTree {
-			rules: Vec::new(),
+			rules: Vec::with_capacity(10000),
+			map: BTreeMap::new(),
 			params: [
 				d.clone(), d.clone(), d.clone(),
 				d.clone(), d.clone(), d.clone(),
@@ -37,18 +40,7 @@ impl<T: Eq> Debug for RuleTree<T> {
 		writeln!(f, "num_nodes={}", self.rules.len())?;
 		for rule in &self.rules {
 			match rule {
-				RuleTreeNode::Leaf(height, children) => {
-					write!(f, "{}", height)?;
-					for c in children {
-						let pos = self.states
-							.iter()
-							.position(|x| x == c)
-							.unwrap();
-						write!(f, " {}", pos)?;
-					}
-					writeln!(f, "")?;
-				},
-				RuleTreeNode::NotLeaf(height, children) => {
+				RuleTreeNode{height, children} => {
 					write!(f, "{}", height)?;
 					for c in children {
 						write!(f, " {}", c)?;
@@ -61,35 +53,37 @@ impl<T: Eq> Debug for RuleTree<T> {
 	}
 }
 impl<T: Eq + Clone> RuleTree<T> {
-	fn get_node(&mut self, n: &RuleTreeNode<T>) -> usize {
-		let mut iter = self.rules.iter();
-		match iter.position(|x| x == n) {
-			Some(n) => n,
+	fn get_node(&mut self, node: &RuleTreeNode) -> usize {
+		match self.map.get(node) {
+			Some(pos) => *pos,
 			None => {
-				self.rules.push(n.clone());
-				self.rules.len() - 1
+				self.rules.push(node.clone());
+				let pos = self.rules.len() - 1;
+				self.map.insert(node.clone(), pos);
+				pos
 			}
 		}
 	}
 	fn recur<F: RuleType<T>>(&mut self, height: usize, f: &F) -> usize {
+		let len = self.states.len();
+		let mut children: Vec<usize> = Vec::with_capacity(len);
 		if height == 1 {
-			let mut children: Vec<T> = Vec::new();
 			for c in &self.states {
 				self.params[8] = c.clone();
 				/*params的参数顺序为：nw、ne、sw、se、n、w、e、s、c*/
-				children.push(f(
+				let s = f(
 					&self.params[0],&self.params[4],&self.params[1],
 					&self.params[5],&self.params[8],&self.params[6],
-					&self.params[2],&self.params[7],&self.params[3]));
+					&self.params[2],&self.params[7],&self.params[3]);
+				children.push(self.states.iter().position(|x| x == &s).unwrap());
 			}
-			self.get_node(&RuleTreeNode::Leaf(1, children))
+			self.get_node(&RuleTreeNode{height: 1, children: children})
 		} else {
-			let mut children: Vec<usize> = Vec::new();
 			for c in &self.states.clone() {
 				self.params[9-height] = c.clone();
 				children.push(self.recur(height-1, f));
 			}
-			self.get_node(&RuleTreeNode::NotLeaf(height, children))
+			self.get_node(&RuleTreeNode{height: height, children: children})
 		}
 	}
 	pub fn create_tree<F: RuleType<T>>(&mut self, f: &F) {
