@@ -88,11 +88,13 @@ impl<T: Eq + Clone> RuleTree<T> {
 	}
 	pub fn create_tree<F: RuleType<T>>(&mut self, f: &F) {
 		self.rules.clear();
+		self.map.clear();
 		self.neighbors = 8;
 		self.recur(9, f);
 	}
 	pub fn create_von_neumann_tree<F: RuleType<T>>(&mut self, f: &F) {
 		self.rules.clear();
+		self.map.clear();
 		self.neighbors = 4;
 		self.recur(5, f);
 	}
