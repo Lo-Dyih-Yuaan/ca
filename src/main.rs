@@ -223,7 +223,7 @@ fn generations_from_rle(rle: &str) -> String {
 	from_rle(&map!{'.'=>".", 'A'=>"#", 'B'=>"A", 'C'=>"B", 'D'=>"C", 'E'=>"D", 'F'=>"E", 'G'=>"F", 'H'=>"G", 'I'=>"H", 'J'=>"I", 'K'=>"J", 'L'=>"K", 'M'=>"L", 'N'=>"M", 'O'=>"N", 'P'=>"O", 'Q'=>"P", 'R'=>"Q", 'S'=>"R", 'T'=>"S", 'U'=>"T", 'V'=>"U", 'W'=>"V", 'X'=>"W", 'Y'=>"X", 'Z'=>"Y"}, ".", rle)
 }
 
-fn main() {
+fn _main() {
 	run_ca!{
 		rule!{Langton's Ant R L},
 		"A",
@@ -541,30 +541,45 @@ fn main() {
 			"C__C_~C~_C~~C-C|C+"
 		}
 	);*/
+	check!{spaceship rule!{non-totalistic B "2o3-o4m"/S "12m3o4m5" H}, ".",
+		"##$##$#.$##$.#$",
+		65
+	}
+	check!{spaceship rule!{B 2 4 / S 1 3 / G 2 H}, ".",
+		concat!{
+			".#....$",
+			"#A##..$",
+			".#.BA.$",
+			".#BA#.$",
+			".#B..B$",
+			"..A#..$",
+			"..#.#.$",
+			"...BAB$",
+			"....##$"
+		},
+		14
+	}
+	check!{spaceship rule!{non-totalistic B "24" / S "134m" / G 2 H}, ".",
+		concat!{
+			"A###A...$",
+			"#BAAB#..$",
+			".#ABA#..$",
+			"B.#BB#.B$",
+		},
+		42
+	}
 }
-/*
-function f(str) {
-	let cells = str.replace(/[\r\n ]/g,"").replace("!","$").match(/\d*[bo$]/g)
-	cells = cells.map(s => s.length<=1 ? s : s.substr(-1).repeat(parseInt(s.substr(0, s.length-1))))
-	cells = cells.join("")
-	let pattern = []
-	let temp = ""
-	for (let c of cells) {
-		if (c == "$") {
-			pattern.push(temp)
-			temp = ""
-		} else if (c == "b") {
-			temp += "."
-		} else if (c == "o") {
-			temp += "#"
+
+fn main() {
+	print_von_neumann_rule_tree!(
+		rule!{Hutton 32},
+		concat!{
+			"USS0S1S00S01S10S11S000",
+			"To>_To^_To<_Tov_",
+			"To>~To^~To<~Tov~",
+			"Ts>_Ts^_Ts<_Tsv_",
+			"Ts>~Ts^~Ts<~Tsv~",
+			"C__C_~C~_C~~C-C|C+"
 		}
-	}
-	let patLens = pattern.map(l => l.length)
-	let maxLen = Math.max.apply(null, patLens)
-	for (let i in pattern) {
-		if (pattern[i].length < maxLen)
-			pattern[i] += ".".repeat(maxLen - pattern[i].length)
-	}
-	return pattern
+	);
 }
-*/
