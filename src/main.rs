@@ -1,17 +1,18 @@
-mod cellular_automaton;
-
+mod rules;
+mod pattern;
+mod golly;
 use std::convert::TryFrom;
-use cellular_automaton::Pattern;
+use pattern::Pattern;
 
 macro_rules! from_stream {
 	($e:expr) =>
-		{<_ as cellular_automaton::FromStream>::from_stream($e).unwrap().1}
+		{<_ as rules::from_stream::FromStream>::from_stream($e).unwrap().1}
 }
 
 macro_rules! print_rule_tree {
 	($rule:expr, $states:expr) => {{
 		let (rf, rs, _) = $rule;
-		let mut rt = cellular_automaton::golly::RuleTree::new(
+		let mut rt = golly::RuleTree::new(
 			Pattern::try_from(format!("{}$", $states)).ok().unwrap().get_data()[0].clone());
 		rt.create_tree(&rf);
 		println!("@RULE {}", rs);
@@ -22,7 +23,7 @@ macro_rules! print_rule_tree {
 macro_rules! print_von_neumann_rule_tree {
 	($rule:expr, $states:expr) => {{
 		let (rf, rs, _) = $rule;
-		let mut rt = cellular_automaton::golly::RuleTree::new(
+		let mut rt = golly::RuleTree::new(
 			Pattern::try_from(format!("{}$", $states)).ok().unwrap().get_data()[0].clone());
 		rt.create_von_neumann_tree(&rf);
 		println!("@RULE {}", rs);
@@ -458,7 +459,7 @@ fn _main() {
 		"P5.A$.M2.P3A$L2N.HAFCA$.KNPNIH2CA$.J3K2FCA$2.IKEFCB$3.H.D!"
 	];
 	for n in 0..10 {
-		let rule = cellular_automaton::generations::rule(
+		let rule = rules::generations::rule(
 			std::num::NonZeroU32::new(n as u32 + 6).unwrap(),
 			&[3], &[2,3]);
 		let ground = from_stream!(".");

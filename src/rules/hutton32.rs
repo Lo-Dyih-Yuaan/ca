@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 use std::fmt::Display;
 use std::fmt::Formatter;
-use super::FromStream;
+use super::from_stream::*;
 
 #[derive(PartialEq, Eq, Clone, Copy)]
 pub enum Direction {
