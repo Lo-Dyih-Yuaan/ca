@@ -1,8 +1,9 @@
-mod rules;
-mod pattern;
-mod golly;
+#[macro_use]
+extern crate ca;
+use ca::rules;
+use ca::pattern::Pattern;
+use ca::golly;
 use std::convert::TryFrom;
-use pattern::Pattern;
 
 macro_rules! from_stream {
 	($e:expr) =>
