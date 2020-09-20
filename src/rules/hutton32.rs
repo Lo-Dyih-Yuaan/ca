@@ -229,8 +229,7 @@ impl State {
 			_ => &Unexcitable
 		}
 	}
-	fn output_will_become_OTS(&self, n: &Self, s: &Self, e: &Self, w: &Self) -> bool
-	{
+	fn output_will_become_ots(&self, n: &Self, s: &Self, e: &Self, w: &Self) -> bool {
 		match self.output(n,s,e,w) {
 			S000 => true,
 			S00 => self.is_excited(),
@@ -238,12 +237,10 @@ impl State {
 			_ => false
 		}
 	}
-	fn output_will_become_confluent(&self, n: &Self, s: &Self, e: &Self, w: &Self) -> bool
-	{
+	fn output_will_become_confluent(&self, n: &Self, s: &Self, e: &Self, w: &Self) -> bool {
 		matches!(self.output(n,s,e,w), S11) && self.is_excited()
 	}
-	fn output_will_become_sensitized(&self, n: &Self, s: &Self, e: &Self, w: &Self) -> bool
-	{
+	fn output_will_become_sensitized(&self, n: &Self, s: &Self, e: &Self, w: &Self) -> bool {
 		match self.output(n,s,e,w) {
 			Unexcitable => self.is_excited(),
 			S|S0|S1 => true,
@@ -353,7 +350,7 @@ pub fn rule(_nw: &State, n: &State, _ne: &State,
 		if is_exist!(Special in all) {
 			Unexcitable
 		} else if is_exist!(Ordinary|Logical in not dir) {
-			if c.output_will_become_OTS(n,s,e,w) {
+			if c.output_will_become_ots(n,s,e,w) {
 				Unexcitable
 			} else if let SpecialTransmission(_, Quiescent) = c.output(n,s,e,w) {
 				Unexcitable

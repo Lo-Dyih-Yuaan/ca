@@ -10,28 +10,6 @@ macro_rules! from_stream {
 		{<_ as rules::from_stream::FromStream>::from_stream($e).unwrap().1}
 }
 
-macro_rules! print_rule_tree {
-	($rule:expr, $states:expr) => {{
-		let (rf, rs, _) = $rule;
-		let mut rt = golly::RuleTree::new(
-			Pattern::try_from(format!("{}$", $states)).ok().unwrap().get_data()[0].clone());
-		rt.create_tree(&rf);
-		println!("@RULE {}", rs);
-		println!("{:?}", rt);
-	}}
-}
-
-macro_rules! print_von_neumann_rule_tree {
-	($rule:expr, $states:expr) => {{
-		let (rf, rs, _) = $rule;
-		let mut rt = golly::RuleTree::new(
-			Pattern::try_from(format!("{}$", $states)).ok().unwrap().get_data()[0].clone());
-		rt.create_von_neumann_tree(&rf);
-		println!("@RULE {}", rs);
-		println!("{:?}", rt);
-	}}
-}
-
 macro_rules! run_ca {
 	($rule:expr, $p:expr, $n:expr) => {
 		let (rule, _rule_str, _) = $rule;
@@ -225,7 +203,7 @@ fn generations_from_rle(rle: &str) -> String {
 	from_rle(&map!{'.'=>".", 'A'=>"#", 'B'=>"A", 'C'=>"B", 'D'=>"C", 'E'=>"D", 'F'=>"E", 'G'=>"F", 'H'=>"G", 'I'=>"H", 'J'=>"I", 'K'=>"J", 'L'=>"K", 'M'=>"L", 'N'=>"M", 'O'=>"N", 'P'=>"O", 'Q'=>"P", 'R'=>"Q", 'S'=>"R", 'T'=>"S", 'U'=>"T", 'V'=>"U", 'W'=>"V", 'X'=>"W", 'Y'=>"X", 'Z'=>"Y"}, ".", rle)
 }
 
-fn _main() {
+fn main() {
 	run_ca!{
 		rule!{Langton's Ant R L},
 		"A",
@@ -570,18 +548,4 @@ fn _main() {
 		},
 		42
 	}
-}
-
-fn main() {
-	print_von_neumann_rule_tree!(
-		rule!{Hutton 32},
-		concat!{
-			"USS0S1S00S01S10S11S000",
-			"To>_To^_To<_Tov_",
-			"To>~To^~To<~Tov~",
-			"Ts>_Ts^_Ts<_Tsv_",
-			"Ts>~Ts^~Ts<~Tsv~",
-			"C__C_~C~_C~~C-C|C+"
-		}
-	);
 }

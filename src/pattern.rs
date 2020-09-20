@@ -2,6 +2,7 @@ use std::fmt::Debug;
 use std::fmt::Display;
 use std::fmt::LowerHex;
 use std::fmt::Formatter;
+use std::str::FromStr;
 use std::convert::TryFrom;
 use crate::rules::RuleType;
 use crate::rules::from_stream::FromStream;
@@ -14,8 +15,12 @@ impl<T> Pattern<T> {
 	fn new() -> Self {
 		Pattern { data: Vec::<Vec<T>>::new() }
 	}
+	fn is_pattern(&self) -> bool {
+		let len = self.data.first().map(|v| v.len());
+		self.data.is_empty() || self.data.iter().all(|v| v.len() == len.unwrap())
+	}
 	fn is_empty(&self) -> bool {
-		self.data.is_empty() || self.data[0].is_empty()
+		self.data.is_empty() || self.data.iter().all(|v| v.is_empty())
 	}
 }
 #[allow(dead_code)]
@@ -193,47 +198,49 @@ impl<T> LowerHex for Pattern<T>
 	}
 }
 
-
-impl<T> TryFrom<&str> for Pattern<T>
+impl<T> FromStr for Pattern<T>
   where T: FromStream + Clone {
-	type Error = Vec<Vec<T>>;
-	fn try_from(s: &str) -> Result<Self, Self::Error> {
+	type Err = Vec<Vec<T>>;
+	fn from_str(s: &str) -> Result<Self, Self::Err> {
 		let mut p: Pattern<T> = Pattern::new();
-		let mut temp: Vec<T> = Vec::new();
+		let mut temp_line: Vec<T> = Vec::new();
 		let mut temp_str = s;
 		while !temp_str.is_empty() {
 			let r = T::from_stream(temp_str);
 			if let Some((len, ele)) = r {
-				temp.push(ele);
+				temp_line.push(ele);
 				temp_str = &temp_str[len..];
 			} else {
-				p.data.push(temp.clone());
-				temp.clear();
+				p.data.push(temp_line.clone());
+				temp_line.clear();
 				let mut chars = temp_str.chars();
 				chars.next();
 				temp_str = chars.as_str();
 			}
 		}
-		if p.is_empty() {
-			Result::Ok(p)
-		} else if p.data.iter().all(|v| v.is_empty()) {
-			p.data.clear();
+		if p.is_pattern() {
+			if p.is_empty() {
+				p.data.clear();
+			}
 			Result::Ok(p)
 		} else {
-			let len = p.data[0].len();
-			if p.data.iter().all(|v| v.len() == len) {
-				Result::Ok(p)
-			} else {
-				Result::Err(p.data)
-			}
+			Result::Err(p.data)
 		}
+	}
+}
+
+impl<T> TryFrom<&str> for Pattern<T>
+  where T: FromStream + Clone {
+	type Error = Vec<Vec<T>>;
+	fn try_from(s: &str) -> Result<Self, Self::Error> {
+		s.parse()
 	}
 }
 impl<T> TryFrom<String> for Pattern<T>
   where T: FromStream + Clone {
 	type Error = Vec<Vec<T>>;
 	fn try_from(s: String) -> Result<Self, Self::Error> {
-		<Self as TryFrom<&str>>::try_from(&s)
+		s.as_str().parse()
 	}
 }
 
