@@ -84,132 +84,24 @@ use self::State::*;
 /*
 impl Debug for State {
 	fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-		macro_rules! dir_fmt {
-			($e:expr) => {
-				match $e {
-					Some(East) => ">",
-					Some(North) => "^",
-					Some(West) => "<",
-					Some(South) => "v",
-				}
-			}
-		}
-		macro_rules! exc_fmt {
-			($e:expr) => {
-				match $e {
-					Quiescent => "_",
-					Excited => "~",
-				}
-			}
-		}
-		match self {
-			Unexcitable => write!(f, "U"),
-			Confluent(e1, e2) =>
-				write!(f, "C{}{}", exc_fmt!(e1), exc_fmt!(e2)),
-			OrdinaryTransmission(d, e) =>
-				write!(f, "To{}{}", dir_fmt!(d), exc_fmt!(e)),
-			SpecialTransmission(d, e) =>
-				write!(f, "Ts{}{}", dir_fmt!(d), exc_fmt!(e)),
-			HorizontalConfluent => write!(f, "C-"),
-			VerticalConfluent => write!(f, "C|"),
-			OrthogonalConfluent => write!(f, "C+"),
-			S => write!(f, "S"),
-			S0 => write!(f, "S0"),
-			S1 => write!(f, "S1"),
-			S00 => write!(f, "S00"),
-			S01 => write!(f, "S01"),
-			S10 => write!(f, "S10"),
-			S11 => write!(f, "S11"),
-			S000 => write!(f, "S000"),
-		}
+		//
 	}
 }
 impl Display for State {
 	fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-		macro_rules! dir_fmt {
-			($e:expr) => {
-				match $e {
-					Some(East) => ">",
-					Some(North) => "^",
-					Some(West) => "<",
-					Some(South) => "v",
-				}
-			}
-		}
-		macro_rules! exc_fmt {
-			($e:expr) => {
-				match $e {
-					Quiescent => "\u{1b}[43m_",
-					Excited => "\u{1b}[103m~",
-				}
-			}
-		}
-		match self {
-			Unexcitable => write!(f, " -"),
-			Confluent(e1, e2) =>
-				write!(f, "{}{}\u{1b}[0m", exc_fmt!(e1), exc_fmt!(e2)),
-			OrdinaryTransmission(d, Quiescent) =>
-				write!(f, "\u{1b}[34m {}\u{1b}[0m", dir_fmt!(d)), //蓝
-			OrdinaryTransmission(d, Excited) =>
-				write!(f, "\u{1b}[32m {}\u{1b}[0m", dir_fmt!(d)), //绿
-			SpecialTransmission(d, Quiescent) =>
-				write!(f, "\u{1b}[31m {}\u{1b}[0m", dir_fmt!(d)), //红
-			SpecialTransmission(d, Excited) =>
-				write!(f, "\u{1b}[35m {}\u{1b}[0m", dir_fmt!(d)), //紫
-			HorizontalConfluent => write!(f, "\u{1b}[103m -\u{1b}[0m"),
-			VerticalConfluent => write!(f, "\u{1b}[103m |\u{1b}[0m"),
-			OrthogonalConfluent => write!(f, "\u{1b}[103m +\u{1b}[0m"),
-			S => write!(f, " S"),
-			S0 => write!(f, "S0"),
-			S1 => write!(f, "S1"),
-			S00 => write!(f, "00"),
-			S01 => write!(f, "01"),
-			S10 => write!(f, "10"),
-			S11 => write!(f, "11"),
-			S000 => write!(f, "*0"),
-		}
-	}
-}*/
-impl FromStream for State {
-	fn from_stream(s: &str) -> Option<(usize, Self)> {
-		match s.chars().next() {
-			Some('_') => Some((1,Empty)),
-			Some('A') => Some((1,InactiveWire)),
-			Some('B') => Some((1,ActiveWire)),
-			Some('C') => Some((1,InhibitedWire)),
-			Some('D') => Some((1,Cross(None,None))),
-			Some('E') => Some((1,NorGate(Inactive))),
-			Some('F') => Some((1,OrGate(Inactive))),
-			Some('G') => Some((1,XorGate(Inactive))),
-			Some('H') => Some((1,AndGate(Inactive))),
-			Some('I') => Some((1,TFlipFlop(Inactive))),
-			Some('J') => Some((1,GateOutput(Inactive))),
-			Some('K') => Some((1,NorGate(Active))),
-			Some('L') => Some((1,OrGate(Active))),
-			Some('M') => Some((1,XorGate(Active))),
-			Some('N') => Some((1,AndGate(Active))),
-			Some('O') => Some((1,TFlipFlop(Active))),
-			Some('P') => Some((1,GateOutput(Active))),
-			Some('Q') => Some((1,Cross(None,Some(North)))),
-			Some('R') => Some((1,Cross(Some(West),Some(South)))),
-			Some('S') => Some((1,Cross(None,Some(South)))),
-			Some('T') => Some((1,Cross(Some(West),Some(North)))),
-			Some('U') => Some((1,AuxiliaryAcive)),
-			Some('V') => Some((1,Cross(Some(East),Some(South)))),
-			Some('W') => Some((1,Cross(Some(East),Some(North)))),
-			Some('X') => Some((1,AuxiliaryInhibited)),
-			Some('Y') => Some((1,Cross(Some(East),None))),
-			Some('Z') => Some((1,Cross(Some(West),None))),
-			_ => None
-		}
+		//
 	}
 }
+impl FromStream for State {
+	fn from_stream(s: &str) -> Option<(usize, Self)> {
+		//
+	}
+}*/
 
 #[allow(dead_code)]
 pub fn rule(_nw: &State, n: &State, _ne: &State,
               w: &State, c: &State,   e: &State,
             _sw: &State, s: &State, _se: &State) -> State {
-	/*一个状态`$s`向`$d`方向传导的冲激类型*/
 	macro_rules! is_exist {
 		($($p:pat)|+ in $i:expr) => {matches!($i, $($p)|+)};
 		($($p:pat)|+ in $i:expr, $($is:expr),*) =>
@@ -294,27 +186,29 @@ pub fn rule(_nw: &State, n: &State, _ne: &State,
 			Cross(h, v)
 		},
 		Cross(Some(d), None) => {
+			if (n == s && *s == ActiveWire) || (e == w && *w == ActiveWire) {
+				return *c;
+			}
 			let v = match (n, s) {
-				(ActiveWire, ActiveWire) => {return *c;},
 				(ActiveWire, _) => Some(North),
 				(_, ActiveWire) => Some(South),
 				_ => None
 			};
-			if *e == ActiveWire && *w == ActiveWire {*c}
-			else if *d.get(e, w) == ActiveWire {Cross(Some(*d), v)}
+			if *d.get(e, w) == ActiveWire {Cross(Some(*d), v)}
 			else if *e != ActiveWire && *w != ActiveWire {Cross(None, v)}
 			else if *n != ActiveWire && *s != ActiveWire {Cross(None, v)}
 			else {*c}
 		},
 		Cross(None, Some(d)) => {
+			if (e == w && *w == ActiveWire) || (n == s && *s == ActiveWire) {
+				return *c;
+			}
 			let h = match (e, w) {
-				(ActiveWire, ActiveWire) => {return *c;},
 				(ActiveWire, _) => Some(East),
 				(_, ActiveWire) => Some(West),
 				_ => None
 			};
-			if *n == ActiveWire && *s == ActiveWire {*c}
-			else if *d.get(n, s) == ActiveWire {Cross(h, Some(*d))}
+			if *d.get(n, s) == ActiveWire {Cross(h, Some(*d))}
 			else if *n != ActiveWire && *s != ActiveWire {Cross(h, None)}
 			else if *e != ActiveWire && *w != ActiveWire {Cross(h, None)}
 			else {*c}

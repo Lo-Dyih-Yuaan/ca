@@ -305,9 +305,21 @@ pub fn rule(_nw: &State, n: &State, _ne: &State,
 		($($p:pat)|+ in $i:expr, $($is:expr),*) =>
 			{matches!($i, $($p)|+) || is_exist!($($p)|+ in $($is),*)};
 	}
+	macro_rules! cross_confluent {
+		() => {{
+			let horizontal = is_exist!(Ordinary in st_e,st_w);
+			let vertical = is_exist!(Ordinary in st_n,st_s);
+			match (horizontal, vertical) {
+				( true,  true) => OrthogonalConfluent,
+				( true, false) => HorizontalConfluent,
+				(false,  true) => VerticalConfluent,
+				(false, false) => Confluent(Quiescent, Quiescent),
+			}
+		}};
+	}
 	//汇合态
-	if *c == Confluent(Quiescent, Quiescent) {
-		let is_intersection = {
+	if let Confluent(_, next) = c {
+		let is_intersection = *c == Confluent(Quiescent, Quiescent) && {
 			let output_count = count!{Input in st_e,st_n,st_w,st_s};
 			let input_count = count!{Ordinary,Empty,SEmpty in st_e,st_n,st_w,st_s};
 			output_count == [2] && input_count.iter().sum::<usize>() == 2
@@ -315,36 +327,14 @@ pub fn rule(_nw: &State, n: &State, _ne: &State,
 		if is_exist!(Special in all) {
 			Unexcitable
 		} else if is_intersection {
-			let horizontal = is_exist!(Ordinary in st_e,st_w);
-			let vertical = is_exist!(Ordinary in st_n,st_s);
-			match (horizontal, vertical) {
-				( true,  true) => OrthogonalConfluent,
-				( true, false) => HorizontalConfluent,
-				(false,  true) => VerticalConfluent,
-				(false, false) => Confluent(Quiescent, Quiescent),
-			}
-		} else if is_exist!(Ordinary in all) && !is_exist!(Empty in all) {
-			Confluent(Quiescent, Excited)
-		} else {Confluent(Quiescent, Quiescent)}
-	} else if let Confluent(_, next) = c {
-		if is_exist!(Special in all) {
-			Unexcitable
+			cross_confluent!()
 		} else if !is_exist!(Empty in all) && is_exist!(Ordinary in all) {
 			Confluent(*next, Excited)
 		} else {Confluent(*next, Quiescent)}
 	} else if let HorizontalConfluent|VerticalConfluent|OrthogonalConfluent = c {
 		if is_exist!(Special in all) {
 			Unexcitable
-		} else {
-			let horizontal = is_exist!(Ordinary in st_e,st_w);
-			let vertical = is_exist!(Ordinary in st_n,st_s);
-			match (horizontal, vertical) {
-				( true,  true) => OrthogonalConfluent,
-				( true, false) => HorizontalConfluent,
-				(false,  true) => VerticalConfluent,
-				(false, false) => Confluent(Quiescent, Quiescent),
-			}
-		}
+		} else {cross_confluent!()}
 	//普通传输态
 	} else if let OrdinaryTransmission(dir, exc) = c {
 		if is_exist!(Special in all) {
@@ -387,6 +377,7 @@ pub fn rule(_nw: &State, n: &State, _ne: &State,
 			else if let Ordinary|Special = st_e {e}
 			else if let Ordinary|Special = st_n {n}
 			else {&Unexcitable};
+		//Hutton原代码只考虑单输入情况，因此二、三项同时为`true`和特殊传输态的情况未在原代码考虑范围内，一般归入相应的普通传输态
 		match (c, is_exist!(Ordinary in all), input) {
 			(Unexcitable, false, SpecialTransmission(dir, _)) => OrdinaryTransmission(*dir, Quiescent),
 			(Unexcitable, false, _) => Unexcitable,
@@ -398,14 +389,16 @@ pub fn rule(_nw: &State, n: &State, _ne: &State,
 			(S1, false, _) => S10,
 			(S1, true, _) => S11,
 			(S00, false, _) => S000,
-			(S00, true, SpecialTransmission(dir, _)) =>OrdinaryTransmission(dir.reverse(), Quiescent),
-			(S00, true, OrdinaryTransmission(dir, _)) =>OrdinaryTransmission(dir.reverse(), Quiescent),
+			(S00, true, SpecialTransmission(dir, _)) => OrdinaryTransmission(dir.reverse(), Quiescent),
+			(S00, true, OrdinaryTransmission(dir, _)) => OrdinaryTransmission(dir.reverse(), Quiescent),
 			(S01, false, SpecialTransmission(dir, _)) => OrdinaryTransmission(dir.turn_right(), Quiescent),
 			(S01, false, _) => S11,
 			(S01, true, OrdinaryTransmission(dir, _)) => SpecialTransmission(*dir, Quiescent),
+			//下四行为原代码溢出情况
 			(S01, true, SpecialTransmission(East, _)) => Confluent(Quiescent, Quiescent),
 			(S01, true, SpecialTransmission(North, _)) => Confluent(Quiescent, Excited),
 			(S01, true, SpecialTransmission(West, _)) => Confluent(Excited, Quiescent),
+//			(S01, true, SpecialTransmission(South, _)) => Confluent(Excited, Excited), //永不触发
 			(S10, false, SpecialTransmission(dir, _)) => SpecialTransmission(dir.turn_left(), Quiescent),
 			(S10, false, _) => SpecialTransmission(East, Quiescent),
 			(S10, true, SpecialTransmission(dir, _)) => SpecialTransmission(dir.reverse(), Quiescent),
