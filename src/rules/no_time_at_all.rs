@@ -70,11 +70,11 @@ pub fn rule(binary: &'static[usize], ternary: &'static[usize]) -> BoxRule<State>
 					if head_sum == 0 {Wire}
 					//丁字路口倍增传输
 					else if d4_symmetry!(Head(_),Wire,Wire,Empty, (n,w,e,s)) {Head(head1_sum == 1)}
-					//丁字路口外多出口阻塞
+					//非丁字路口多出口阻塞
 					else if wire_sum >= 2 {Wire}
 					//二元门
 					else if head_sum == 2 {Head(binary.contains(&head1_sum))}
-					//二元门
+					//三元门
 					else if head_sum == 3 {Head(ternary.contains(&head1_sum))}
 					//单输入不变传输，四输入不会产生影响，因此不专门写出
 					else {Head(head1_sum == 1)}
