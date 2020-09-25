@@ -225,7 +225,7 @@ pub fn rule(_nw: &State, n: &State, _ne: &State,
 	let n = get_stimulus!(n, South);
 	let w = get_stimulus!(w, East);
 	let s = get_stimulus!(s, North);
-	macro_rules! is_exist {
+	macro_rules! is_exist_dir {
 		($($p:pat)|+ in not $d:expr) => {
 			match $d {
 				East => is_exist!($($p)|+ in n,w,s),
@@ -234,9 +234,6 @@ pub fn rule(_nw: &State, n: &State, _ne: &State,
 				South => is_exist!($($p)|+ in e,n,w),
 			}
 		};
-		($($p:pat)|+ in $i:expr) => {matches!($i, $($p)|+)};
-		($($p:pat)|+ in $i:expr, $($is:expr),*) =>
-			{matches!($i, $($p)|+) || is_exist!($($p)|+ in $($is),*)};
 	}
 	//汇合态
 	if let Confluent(_, _)|HorizontalConfluent|VerticalConfluent|OrthogonalConfluent = c {
@@ -266,14 +263,14 @@ pub fn rule(_nw: &State, n: &State, _ne: &State,
 	} else if let OrdinaryTransmission(dir, _) = c {
 		if is_exist!(Special in e,n,w,s) {
 			Unexcitable
-		} else if is_exist!(Ordinary|Logical in not dir) {
+		} else if is_exist_dir!(Ordinary|Logical in not dir) {
 			OrdinaryTransmission(*dir, Excited)
 		} else {OrdinaryTransmission(*dir, Quiescent)}
 	//特殊传输态
 	} else if let SpecialTransmission(dir, _) = c {
 		if is_exist!(Ordinary in e,n,w,s) {
 			Unexcitable
-		} else if is_exist!(Special|Logical in not dir) {
+		} else if is_exist_dir!(Special|Logical in not dir) {
 			SpecialTransmission(*dir, Excited)
 		} else {SpecialTransmission(*dir, Quiescent)}
 	//激发态

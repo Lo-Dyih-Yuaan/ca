@@ -102,11 +102,6 @@ impl FromStream for State {
 pub fn rule(_nw: &State, n: &State, _ne: &State,
               w: &State, c: &State,   e: &State,
             _sw: &State, s: &State, _se: &State) -> State {
-	macro_rules! is_exist {
-		($($p:pat)|+ in $i:expr) => {matches!($i, $($p)|+)};
-		($($p:pat)|+ in $i:expr, $($is:expr),*) =>
-			{matches!($i, $($p)|+) || is_exist!($($p)|+ in $($is),*)};
-	}
 	match c {
 		Empty => Empty,
 		InactiveWire =>

@@ -51,3 +51,9 @@ macro_rules! count {
 		temp
 	}};
 }
+
+macro_rules! is_exist {
+	($($p:pat)|+ in $i:expr) => {matches!($i, $($p)|+)};
+	($($p:pat)|+ in $i:expr, $($is:expr),*) =>
+		{matches!($i, $($p)|+) || is_exist!($($p)|+ in $($is),*)};
+}

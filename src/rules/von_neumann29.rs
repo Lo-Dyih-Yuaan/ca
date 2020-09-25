@@ -203,48 +203,42 @@ pub fn rule(_nw: &State, n: &State, _ne: &State,
 	let n = get_stimulus!(n, South);
 	let w = get_stimulus!(w, East);
 	let s = get_stimulus!(s, North);
-	macro_rules! is_exist {
-		($($e:expr),*; not $d:expr) => {
+	macro_rules! is_exist_dir {
+		($($e:pat)|+ in not $d:expr) => {
 			match $d {
-				East => is_exist!($($e),*; n,w,s),
-				North => is_exist!($($e),*; e,w,s),
-				West => is_exist!($($e),*; e,n,s),
-				South => is_exist!($($e),*; e,n,w),
+				East => is_exist!($($e)|+ in n,w,s),
+				North => is_exist!($($e)|+ in e,w,s),
+				West => is_exist!($($e)|+ in e,n,s),
+				South => is_exist!($($e)|+ in e,n,w),
 			}
 		};
-		($e:expr; $i:expr) => {$e == $i};
-		($e:expr; $i:expr, $($is:expr),*) =>
-			{$e == $i || is_exist!($e; $($is),*)};
-		($e1:expr, $e2:expr; $i:expr) => {$e1 == $i || $e2 == $i};
-		($e1:expr, $e2:expr; $i:expr, $($is:expr),*) =>
-			{$e1 == $i || $e2 == $i || is_exist!($e1, $e2; $($is),*)};
 	}
 	//汇合态
 	if let Confluent(_, next) = c {
-		if is_exist!(Special; e,n,w,s) {
+		if is_exist!(Special in e,n,w,s) {
 			Unexcitable
-		} else if is_exist!(Empty; e,n,w,s) {
+		} else if is_exist!(Empty in e,n,w,s) {
 			Confluent(*next, Quiescent)
-		} else if is_exist!(Ordinary; e,n,w,s) {
+		} else if is_exist!(Ordinary in e,n,w,s) {
 			Confluent(*next, Excited)
 		} else {Confluent(*next, Quiescent)}
 	//普通传输态
 	} else if let OrdinaryTransmission(dir, _) = c {
-		if is_exist!(Special; e,n,w,s) {
+		if is_exist!(Special in e,n,w,s) {
 			Unexcitable
-		} else if is_exist!(Ordinary,Logical; not dir) {
+		} else if is_exist_dir!(Ordinary|Logical in not dir) {
 			OrdinaryTransmission(*dir, Excited)
 		} else {OrdinaryTransmission(*dir, Quiescent)}
 	//特殊传输态
 	} else if let SpecialTransmission(dir, _) = c {
-		if is_exist!(Ordinary; e,n,w,s) {
+		if is_exist!(Ordinary in e,n,w,s) {
 			Unexcitable
-		} else if is_exist!(Special,Logical; not dir) {
+		} else if is_exist_dir!(Special|Logical in not dir) {
 			SpecialTransmission(*dir, Excited)
 		} else {SpecialTransmission(*dir, Quiescent)}
 	//激发态
 	} else {
-		match (c, is_exist!(Ordinary,Special; e,n,w,s)) {
+		match (c, is_exist!(Ordinary|Special in e,n,w,s)) {
 			(Unexcitable, false) => Unexcitable,
 			(Unexcitable, true) => S,
 			(S, false) => S0,

@@ -53,11 +53,6 @@ pub fn rule(binary: &'static[usize], ternary: &'static[usize]) -> BoxRule<State>
 	Box::new(move |_nw: &State, n: &State, _ne: &State,
 	                 w: &State, c: &State,   e: &State,
 	               _sw: &State, s: &State, _se: &State| -> State {
-		macro_rules! is_exist {
-			($($p:pat)|+ in $i:expr) => {matches!($i, $($p)|+)};
-			($($p:pat)|+ in $i:expr, $($is:expr),*) =>
-				{matches!($i, $($p)|+) || is_exist!($($p)|+ in $($is),*)};
-		}
 		match c {
 			Empty => Empty,
 			Wire =>

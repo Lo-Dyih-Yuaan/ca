@@ -289,7 +289,7 @@ pub fn rule(_nw: &State, n: &State, _ne: &State,
 	let st_n = get_stimulus!(n, South);
 	let st_w = get_stimulus!(w, East);
 	let st_s = get_stimulus!(s, North);
-	macro_rules! is_exist {
+	macro_rules! is_exist_dir {
 		($($p:pat)|+ in all) => {
 			is_exist!($($p)|+ in st_e,st_n,st_w,st_s)
 		};
@@ -301,9 +301,6 @@ pub fn rule(_nw: &State, n: &State, _ne: &State,
 				South => is_exist!($($p)|+ in st_e,st_n,st_w),
 			}
 		};
-		($($p:pat)|+ in $i:expr) => {matches!($i, $($p)|+)};
-		($($p:pat)|+ in $i:expr, $($is:expr),*) =>
-			{matches!($i, $($p)|+) || is_exist!($($p)|+ in $($is),*)};
 	}
 	macro_rules! cross_confluent {
 		() => {{
@@ -324,22 +321,22 @@ pub fn rule(_nw: &State, n: &State, _ne: &State,
 			let input_count = count!{Ordinary,Empty,SEmpty in st_e,st_n,st_w,st_s};
 			output_count == [2] && input_count.iter().sum::<usize>() == 2
 		};
-		if is_exist!(Special in all) {
+		if is_exist_dir!(Special in all) {
 			Unexcitable
 		} else if is_intersection {
 			cross_confluent!()
-		} else if !is_exist!(Empty in all) && is_exist!(Ordinary in all) {
+		} else if !is_exist_dir!(Empty in all) && is_exist_dir!(Ordinary in all) {
 			Confluent(*next, Excited)
 		} else {Confluent(*next, Quiescent)}
 	} else if let HorizontalConfluent|VerticalConfluent|OrthogonalConfluent = c {
-		if is_exist!(Special in all) {
+		if is_exist_dir!(Special in all) {
 			Unexcitable
 		} else {cross_confluent!()}
 	//普通传输态
 	} else if let OrdinaryTransmission(dir, exc) = c {
-		if is_exist!(Special in all) {
+		if is_exist_dir!(Special in all) {
 			Unexcitable
-		} else if is_exist!(Ordinary|Logical in not dir) {
+		} else if is_exist_dir!(Ordinary|Logical in not dir) {
 			if c.output_will_become_ots(n,s,e,w) {
 				Unexcitable
 			} else if let SpecialTransmission(_, Quiescent) = c.output(n,s,e,w) {
@@ -354,19 +351,19 @@ pub fn rule(_nw: &State, n: &State, _ne: &State,
 		} else {OrdinaryTransmission(*dir, Quiescent)}
 	//特殊传输态
 	} else if let SpecialTransmission(dir, exc) = c {
-		if *exc == Excited && matches!(c.output(n,s,e,w), S|S0|S1|S00|S01|S10|S11|S000) && is_exist!(Ordinary|Empty in all) {
-			match (c.output_will_become_sensitized(n,s,e,w), is_exist!(Ordinary in all)) {
+		if *exc == Excited && matches!(c.output(n,s,e,w), S|S0|S1|S00|S01|S10|S11|S000) && is_exist_dir!(Ordinary|Empty in all) {
+			match (c.output_will_become_sensitized(n,s,e,w), is_exist_dir!(Ordinary in all)) {
 				( true,  true) => OrdinaryTransmission(*dir, *exc),
 				( true, false) => *c,
 				(false,  true) => Unexcitable,
 				(false, false) => OrdinaryTransmission(*dir, Quiescent),
 			}
 		} else if *exc == Excited && *c.output(n,s,e,w) == Unexcitable {
-			if is_exist!(Special in not dir) {*c}
+			if is_exist_dir!(Special in not dir) {*c}
 			else {SpecialTransmission(*dir, Quiescent)}
-		} else if is_exist!(Ordinary in all) {
+		} else if is_exist_dir!(Ordinary in all) {
 			Unexcitable
-		} else if is_exist!(Special|Logical in not dir) {
+		} else if is_exist_dir!(Special|Logical in not dir) {
 			SpecialTransmission(*dir, Excited)
 		} else {SpecialTransmission(*dir, Quiescent)}
 	//激发态
@@ -378,7 +375,7 @@ pub fn rule(_nw: &State, n: &State, _ne: &State,
 			else if let Ordinary|Special = st_n {n}
 			else {&Unexcitable};
 		//Hutton原代码只考虑单输入情况，因此二、三项同时为`true`和特殊传输态的情况未在原代码考虑范围内，一般归入相应的普通传输态
-		match (c, is_exist!(Ordinary in all), input) {
+		match (c, is_exist_dir!(Ordinary in all), input) {
 			(Unexcitable, false, SpecialTransmission(dir, _)) => OrdinaryTransmission(*dir, Quiescent),
 			(Unexcitable, false, _) => Unexcitable,
 			(Unexcitable, true, _) => S,
