@@ -49,7 +49,9 @@ impl FromStream for State {
 }
 
 #[allow(dead_code, unreachable_patterns)]
-pub fn rule(binary: &'static[usize], ternary: &'static[usize]) -> BoxRule<State> {
+pub fn rule(binary: &[usize], ternary: &[usize]) -> BoxRule<State> {
+	let binary = binary.to_owned();
+	let ternary = ternary.to_owned();
 	Box::new(move |_nw: &State, n: &State, _ne: &State,
 	                 w: &State, c: &State,   e: &State,
 	               _sw: &State, s: &State, _se: &State| -> State {

@@ -92,7 +92,7 @@ impl FromStream for State {
 }
 
 #[allow(dead_code)]
-pub fn rule(states: &'static str) -> BoxRule<State> {
+pub fn rule(states: &str) -> BoxRule<State> {
 	for s in states.chars() {
 		if let 'N'|'R'|'L'|'U' = s {}
 		else {unreachable!()}
