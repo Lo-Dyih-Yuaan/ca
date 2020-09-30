@@ -42,8 +42,12 @@ impl FromStream for Cell {
 }
 
 #[allow(dead_code)]
-pub fn rule(bs: &'static[usize], ss: &'static[usize],
-  fs: &'static[usize], ks: &'static[usize], ls: &'static[usize]) -> BoxRule<Cell> {
+pub fn rule(bs: &[usize], ss: &[usize], fs: &[usize], ks: &[usize], ls: &[usize]) -> BoxRule<Cell> {
+	let bs = bs.to_owned();
+	let ss = ss.to_owned();
+	let fs = fs.to_owned();
+	let ks = ks.to_owned();
+	let ls = ls.to_owned();
 	Box::new(move |nw: &Cell, n: &Cell, ne: &Cell,
 	                w: &Cell, c: &Cell,  e: &Cell,
 	               sw: &Cell, s: &Cell, se: &Cell| -> Cell {

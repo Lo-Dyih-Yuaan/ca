@@ -38,7 +38,9 @@ impl FromStream for Cell {
 }
 
 #[allow(dead_code)]
-pub fn rule(birth: &'static[usize], save: &'static[usize]) -> BoxRule<Cell> {
+pub fn rule(birth: &[usize], save: &[usize]) -> BoxRule<Cell> {
+	let birth = birth.to_owned();
+	let save = save.to_owned();
 	Box::new(move |nw: &Cell, n: &Cell, ne: &Cell,
 	                w: &Cell, c: &Cell,  e: &Cell,
 	               sw: &Cell, s: &Cell, se: &Cell| -> Cell {
@@ -50,7 +52,9 @@ pub fn rule(birth: &'static[usize], save: &'static[usize]) -> BoxRule<Cell> {
 	})
 }
 #[allow(dead_code)]
-pub fn rule_h(birth: &'static[usize], save: &'static[usize]) -> BoxRule<Cell> {
+pub fn rule_h(birth: &[usize], save: &[usize]) -> BoxRule<Cell> {
+	let birth = birth.to_owned();
+	let save = save.to_owned();
 	Box::new(move | nw: &Cell, n: &Cell, _ne: &Cell,
 	                 w: &Cell, c: &Cell,   e: &Cell,
 	               _sw: &Cell, s: &Cell,  se: &Cell| -> Cell {
@@ -62,28 +66,28 @@ pub fn rule_h(birth: &'static[usize], save: &'static[usize]) -> BoxRule<Cell> {
 	})
 }
 #[allow(unreachable_patterns, dead_code)]
-pub fn non_totalistic_rule(birth: &'static str, save: &'static str) -> BoxRule<Cell> {
-	let b_fun = non_totalistic_closure!(Cell; Live, birth);
-	let s_fun = non_totalistic_closure!(Cell; Live, save);
+pub fn non_totalistic_rule(birth: &str, save: &str) -> BoxRule<Cell> {
+	let birth = non_totalistic_closure!(Cell; Live, birth);
+	let save = non_totalistic_closure!(Cell; Live, save);
 	Box::new(move |nw: &Cell, n: &Cell, ne: &Cell,
 	                w: &Cell, c: &Cell,  e: &Cell,
 	               sw: &Cell, s: &Cell, se: &Cell| -> Cell {
 		match c {
-			Live => if s_fun(nw,n,ne,w,e,sw,s,se) {Live} else {Dead},
-			Dead => if b_fun(nw,n,ne,w,e,sw,s,se) {Live} else {Dead},
+			Live => if save(nw,n,ne,w,e,sw,s,se) {Live} else {Dead},
+			Dead => if birth(nw,n,ne,w,e,sw,s,se) {Live} else {Dead},
 		}
 	})
 }
 #[allow(unreachable_patterns, dead_code)]
-pub fn non_totalistic_rule_h(birth: &'static str, save: &'static str) -> BoxRule<Cell> {
-	let b_fun = non_totalistic_closure_h!(Cell; Live, birth);
-	let s_fun = non_totalistic_closure_h!(Cell; Live, save);
+pub fn non_totalistic_rule_h(birth: &str, save: &str) -> BoxRule<Cell> {
+	let birth = non_totalistic_closure_h!(Cell; Live, birth);
+	let save = non_totalistic_closure_h!(Cell; Live, save);
 	Box::new(move | nw: &Cell, n: &Cell, _ne: &Cell,
 	                 w: &Cell, c: &Cell,   e: &Cell,
 	               _sw: &Cell, s: &Cell,  se: &Cell| -> Cell {
 		match c {
-			Live => if s_fun(nw,w,n,s,e,se) {Live} else {Dead},
-			Dead => if b_fun(nw,w,n,s,e,se) {Live} else {Dead},
+			Live => if save(nw,w,n,s,e,se) {Live} else {Dead},
+			Dead => if birth(nw,w,n,s,e,se) {Live} else {Dead},
 		}
 	})
 }

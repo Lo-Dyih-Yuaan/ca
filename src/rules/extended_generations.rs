@@ -59,7 +59,9 @@ impl std::ops::Not for Action {
 }
 
 #[allow(dead_code)]
-pub fn rule(action: &[usize], birth: &'static[usize], save: &'static[usize]) -> BoxRule<Cell> {
+pub fn rule(action: &[usize], birth: &[usize], save: &[usize]) -> BoxRule<Cell> {
+	let birth = birth.to_owned();
+	let save = save.to_owned();
 	let action = {
 		let mut now = Active;
 		let mut temp = Vec::<Action>::new();
@@ -102,7 +104,7 @@ pub fn rule(action: &[usize], birth: &'static[usize], save: &'static[usize]) -> 
 }
 
 #[allow(unreachable_patterns, dead_code)]
-pub fn non_totalistic_rule(action: &[usize], birth: &'static str, save: &'static str) -> BoxRule<Cell> {
+pub fn non_totalistic_rule(action: &[usize], birth: &str, save: &str) -> BoxRule<Cell> {
 	let action = {
 		let mut now = Active;
 		let mut temp = Vec::<Action>::new();
@@ -122,8 +124,8 @@ pub fn non_totalistic_rule(action: &[usize], birth: &'static str, save: &'static
 			if let Live(n) = $c {action[*n]} else {Inactive}
 		};
 	}
-	let b_fun = non_totalistic_closure!(Action; Active, birth);
-	let s_fun = non_totalistic_closure!(Action; Active, save);
+	let birth = non_totalistic_closure!(Action; Active, birth);
+	let save = non_totalistic_closure!(Action; Active, save);
 	Box::new(move |nw: &Cell, n: &Cell, ne: &Cell,
 	                w: &Cell, c: &Cell,  e: &Cell,
 	               sw: &Cell, s: &Cell, se: &Cell| -> Cell {
@@ -136,9 +138,9 @@ pub fn non_totalistic_rule(action: &[usize], birth: &'static str, save: &'static
 		let  s = &trans!( s);
 		let se = &trans!(se);
 		match c {
-			Dead => if b_fun(nw,n,ne,w,e,sw,s,se) {Live(0)} else {Dead},
+			Dead => if birth(nw,n,ne,w,e,sw,s,se) {Live(0)} else {Dead},
 			Live(i) =>
-				if action[*i] == Active && s_fun(nw,n,ne,w,e,sw,s,se) {Live(*i)}
+				if action[*i] == Active && save(nw,n,ne,w,e,sw,s,se) {Live(*i)}
 				else if *i+1 < action.len() {Live(*i+1)}
 				else {Dead}
 		}
