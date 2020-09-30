@@ -10,6 +10,7 @@ pub mod from_stream;
 
 pub mod life;
 pub mod generations;
+pub mod extended_generations;
 pub mod wireworld;
 pub mod logic_land;
 pub mod no_time_at_all;
@@ -21,6 +22,14 @@ pub mod hutton32;
 
 #[macro_export]
 macro_rules! rule {
+	(@extgen_a) => {&[]};
+	(@extgen_i) => {&[]};
+	(@extgen_a A $a:literal $($t:tt)*) => {
+		&[&[$a as usize] as &[_], rule!(@extgen_i $($t)*)].concat()
+	};
+	(@extgen_i I $i:literal $($t:tt)*) => {
+		&[&[$i as usize] as &[_], rule!(@extgen_a $($t)*)].concat()
+	};
 	//规则函数
 	(@fun B $($b:literal)* / S $($s:literal)*) => {
 		$crate::rules::
@@ -54,6 +63,34 @@ macro_rules! rule {
 		$crate::rules::
 			generations::non_totalistic_rule_h($g,$b,$s)
 	};
+	(@fun B $($b:literal)* / S $($s:literal)* / A $a:literal $($t:tt)*) => {
+		$crate::rules::
+			extended_generations::rule(
+				&[&[$a as usize] as &[_], rule!(@extgen_i $($t)*)].concat(),
+				&[$($b),*],&[$($s),*]
+			)
+	};
+	(@fun B $($b:literal)* / S $($s:literal)* / I $i:literal $($t:tt)*) => {
+		$crate::rules::
+			extended_generations::rule(
+				&[&[0,$i as usize] as &[_], rule!(@extgen_a $($t)*)].concat(),
+				&[$($b),*],&[$($s),*]
+			)
+	};
+	(@fun non-totalistic B $b:literal / S $s:literal / A $a:literal $($t:tt)*) => {
+		$crate::rules::
+			extended_generations::non_totalistic_rule(
+				&[&[$a as usize] as &[_], rule!(@extgen_i $($t)*)].concat(),
+				$b,$s
+			)
+	};
+	(@fun non-totalistic B $b:literal / S $s:literal / I $i:literal $($t:tt)*) => {
+		$crate::rules::
+			extended_generations::non_totalistic_rule(
+				&[&[0,$i as usize] as &[_], rule!(@extgen_a $($t)*)].concat(),
+				$b,$s
+			)
+	};
 	(@fun B $($b:literal)* / S $($s:literal)* / F $($f:literal)* / K $($k:literal)* / L $($l:literal)*) => {
 		$crate::rules::
 			bsfkl::rule(&[$($b),*],&[$($s),*],&[$($f),*],&[$($k),*],&[$($l),*])
@@ -80,14 +117,8 @@ macro_rules! rule {
 	(@fun Nobili 32) => {$crate::rules::nobili32::rule};
 	(@fun Hutton 32) => {$crate::rules::hutton32::rule};
 	//规则字符串
-	(@str non-totalistic B $b:literal / S $s:literal) =>
-		{format!("B{}/S{}",$b,$s)};
-	(@str non-totalistic B $b:literal / S $s:literal H) =>
-		{format!("B{}/S{}H",$b,$s)};
-	(@str non-totalistic B $b:literal / S $s:literal / G $g:literal) =>
-		{format!("B{}/S{}/G{}",$b,$s,$g)};
-	(@str non-totalistic B $b:literal / S $s:literal / G $g:literal H) =>
-		{format!("B{}/S{}/G{}H",$b,$s,$g)};
+	(@str non-totalistic $($t:tt)*) =>
+		{rule!(@str $($t)*)};
 	(@str Langton's Ant $s:literal) => {concat!{"Langton's Ant ", $s}};
 	(@str Langton's Ant $($t:tt)+) =>
 		{concat!{"Langton's Ant ", $(stringify!($t)),+}};
@@ -102,3 +133,17 @@ macro_rules! rule {
 	//输入
 	($($t:tt)+) => {(rule!{@fun $($t)+}, rule!{@str $($t)+}, rule!{@display $($t)+})};
 }
+/*
+use proc_macro::TokenStream;
+#[proc_macro]
+pub fn rule_string(item: TokenStream) -> TokenStream {
+	let item = item.to_string();
+	let is_hex = item.ends_with("H");
+	if is_hex {item.strip_suffix("H").unwrap()} else {item};
+	let items = item.split('/').collect();
+	if items.len() == 2 && items[0].starts_with("B") && items[1].starts_with("S") {
+		format!("rules::life::non_totalistic_rule({:?},{:?})",
+			item[0].strip_prefix("B").unwrap(),
+			item[1].strip_prefix("S").unwrap())
+	} else {unreachable!()}.parse().unwrap()
+}*/
