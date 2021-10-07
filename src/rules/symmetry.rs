@@ -4,8 +4,8 @@ macro_rules! d4_symmetry {
 	 $p11:pat,$p12:pat,$p13:pat,$p21:pat,$p23:pat,$p31:pat,$p32:pat,$p33:pat) => 
 		{($p11,$p12,$p13,$p21,$p23,$p31,$p32,$p33)};
 	(@ ;
-		$p1:pat,$p2:pat,$p3:pat,$p4:pat) => 
-		   {($p1,$p2,$p3,$p4)};
+	 $p1:pat,$p2:pat,$p3:pat,$p4:pat) => 
+		{($p1,$p2,$p3,$p4)};
 	(@ rotate $($i:ident)*; //旋转（向右90°）
 	 $p11:pat, $p12:pat, $p13:pat,
 	 $p21:pat,           $p23:pat,
@@ -45,37 +45,31 @@ macro_rules! d4_symmetry {
 	($t:ty;$p11:pat,$p12:pat,$p13:pat,$p21:pat,$p23:pat,$p31:pat,$p32:pat,$p33:pat) => {
 		Box::new(
 			|c11:&$t,c12:&$t,c13:&$t,c21:&$t,c23:&$t,c31:&$t,c32:&$t,c33:&$t|
-			d4_symmetry!{
-				$p11,$p12,$p13,$p21,$p23,$p31,$p32,$p33,
-				(c11,c12,c13,c21,c23,c31,c32,c33)
+			matches!{
+				(c11,c12,c13,c21,c23,c31,c32,c33),
+				d4_symmetry!($p11,$p12,$p13,$p21,$p23,$p31,$p32,$p33)
 			}
 		) as Box<dyn Fn(&$t,&$t,&$t,&$t,&$t,&$t,&$t,&$t) -> bool>
 	};
-	($p11:pat,$p12:pat,$p13:pat,$p21:pat,$p23:pat,$p31:pat,$p32:pat,$p33:pat, $x:expr) => {
-		matches!{
-			$x,
-			d4_symmetry!(@; $p11,$p12,$p13,$p21,$p23,$p31,$p32,$p33) |
-			d4_symmetry!(@rotate; $p11,$p12,$p13,$p21,$p23,$p31,$p32,$p33) |
-			d4_symmetry!(@rotate rotate; $p11,$p12,$p13,$p21,$p23,$p31,$p32,$p33) |
-			d4_symmetry!(@rotate rotate rotate; $p11,$p12,$p13,$p21,$p23,$p31,$p32,$p33) |
-			d4_symmetry!(@flip; $p11,$p12,$p13,$p21,$p23,$p31,$p32,$p33) |
-			d4_symmetry!(@flip rotate; $p11,$p12,$p13,$p21,$p23,$p31,$p32,$p33) |
-			d4_symmetry!(@flip rotate rotate; $p11,$p12,$p13,$p21,$p23,$p31,$p32,$p33) |
-			d4_symmetry!(@flip rotate rotate rotate; $p11,$p12,$p13,$p21,$p23,$p31,$p32,$p33)
-		}
+	($p11:pat,$p12:pat,$p13:pat,$p21:pat,$p23:pat,$p31:pat,$p32:pat,$p33:pat) => {
+		d4_symmetry!(@; $p11,$p12,$p13,$p21,$p23,$p31,$p32,$p33) |
+		d4_symmetry!(@rotate; $p11,$p12,$p13,$p21,$p23,$p31,$p32,$p33) |
+		d4_symmetry!(@rotate rotate; $p11,$p12,$p13,$p21,$p23,$p31,$p32,$p33) |
+		d4_symmetry!(@rotate rotate rotate; $p11,$p12,$p13,$p21,$p23,$p31,$p32,$p33) |
+		d4_symmetry!(@flip; $p11,$p12,$p13,$p21,$p23,$p31,$p32,$p33) |
+		d4_symmetry!(@flip rotate; $p11,$p12,$p13,$p21,$p23,$p31,$p32,$p33) |
+		d4_symmetry!(@flip rotate rotate; $p11,$p12,$p13,$p21,$p23,$p31,$p32,$p33) |
+		d4_symmetry!(@flip rotate rotate rotate; $p11,$p12,$p13,$p21,$p23,$p31,$p32,$p33)
 	};
-	($p1:pat,$p2:pat,$p3:pat,$p4:pat, $x:expr) => {
-		matches!{
-			$x,
-			d4_symmetry!(@; $p1,$p2,$p3,$p4) |
-			d4_symmetry!(@rotate; $p1,$p2,$p3,$p4) |
-			d4_symmetry!(@rotate rotate; $p1,$p2,$p3,$p4) |
-			d4_symmetry!(@rotate rotate rotate; $p1,$p2,$p3,$p4) |
-			d4_symmetry!(@flip; $p1,$p2,$p3,$p4) |
-			d4_symmetry!(@flip rotate; $p1,$p2,$p3,$p4) |
-			d4_symmetry!(@flip rotate rotate; $p1,$p2,$p3,$p4) |
-			d4_symmetry!(@flip rotate rotate rotate; $p1,$p2,$p3,$p4)
-		}
+	($p1:pat,$p2:pat,$p3:pat,$p4:pat) => {
+		d4_symmetry!(@; $p1,$p2,$p3,$p4) |
+		d4_symmetry!(@rotate; $p1,$p2,$p3,$p4) |
+		d4_symmetry!(@rotate rotate; $p1,$p2,$p3,$p4) |
+		d4_symmetry!(@rotate rotate rotate; $p1,$p2,$p3,$p4) |
+		d4_symmetry!(@flip; $p1,$p2,$p3,$p4) |
+		d4_symmetry!(@flip rotate; $p1,$p2,$p3,$p4) |
+		d4_symmetry!(@flip rotate rotate; $p1,$p2,$p3,$p4) |
+		d4_symmetry!(@flip rotate rotate rotate; $p1,$p2,$p3,$p4)
 	};
 }
 
@@ -109,28 +103,25 @@ macro_rules! d6_symmetry {
 	($t:ty;$p1:pat,$p2:pat,$p3:pat,$p4:pat,$p5:pat,$p6:pat) => {
 		Box::new(
 			|c1:&$t,c2:&$t,c3:&$t,c4:&$t,c5:&$t,c6:&$t|
-			d6_symmetry!{
-				$p1,$p2,$p3,$p4,$p5,$p6,
-				(c1,c2,c3,c4,c5,c6)
+			matches!{
+				(c1,c2,c3,c4,c5,c6),
+				d6_symmetry!($p1,$p2,$p3,$p4,$p5,$p6)
 			}
 		) as Box<dyn Fn(&$t,&$t,&$t,&$t,&$t,&$t) -> bool>
 	};
-	($p1:pat,$p2:pat,$p3:pat,$p4:pat,$p5:pat,$p6:pat, $x:expr) => {
-		matches!{
-			$x,
-			d6_symmetry!(@; $p1,$p2,$p3,$p4,$p5,$p6) |
-			d6_symmetry!(@rotate; $p1,$p2,$p3,$p4,$p5,$p6) |
-			d6_symmetry!(@rotate rotate; $p1,$p2,$p3,$p4,$p5,$p6) |
-			d6_symmetry!(@rotate rotate rotate; $p1,$p2,$p3,$p4,$p5,$p6) |
-			d6_symmetry!(@rotate rotate rotate rotate; $p1,$p2,$p3,$p4,$p5,$p6) |
-			d6_symmetry!(@rotate rotate rotate rotate rotate; $p1,$p2,$p3,$p4,$p5,$p6) |
-			d6_symmetry!(@flip; $p1,$p2,$p3,$p4,$p5,$p6) |
-			d6_symmetry!(@flip rotate; $p1,$p2,$p3,$p4,$p5,$p6) |
-			d6_symmetry!(@flip rotate rotate; $p1,$p2,$p3,$p4,$p5,$p6) |
-			d6_symmetry!(@flip rotate rotate rotate; $p1,$p2,$p3,$p4,$p5,$p6) |
-			d6_symmetry!(@flip rotate rotate rotate rotate; $p1,$p2,$p3,$p4,$p5,$p6) |
-			d6_symmetry!(@flip rotate rotate rotate rotate rotate; $p1,$p2,$p3,$p4,$p5,$p6)
-		}
+	($p1:pat,$p2:pat,$p3:pat,$p4:pat,$p5:pat,$p6:pat) => {
+		d6_symmetry!(@; $p1,$p2,$p3,$p4,$p5,$p6) |
+		d6_symmetry!(@rotate; $p1,$p2,$p3,$p4,$p5,$p6) |
+		d6_symmetry!(@rotate rotate; $p1,$p2,$p3,$p4,$p5,$p6) |
+		d6_symmetry!(@rotate rotate rotate; $p1,$p2,$p3,$p4,$p5,$p6) |
+		d6_symmetry!(@rotate rotate rotate rotate; $p1,$p2,$p3,$p4,$p5,$p6) |
+		d6_symmetry!(@rotate rotate rotate rotate rotate; $p1,$p2,$p3,$p4,$p5,$p6) |
+		d6_symmetry!(@flip; $p1,$p2,$p3,$p4,$p5,$p6) |
+		d6_symmetry!(@flip rotate; $p1,$p2,$p3,$p4,$p5,$p6) |
+		d6_symmetry!(@flip rotate rotate; $p1,$p2,$p3,$p4,$p5,$p6) |
+		d6_symmetry!(@flip rotate rotate rotate; $p1,$p2,$p3,$p4,$p5,$p6) |
+		d6_symmetry!(@flip rotate rotate rotate rotate; $p1,$p2,$p3,$p4,$p5,$p6) |
+		d6_symmetry!(@flip rotate rotate rotate rotate rotate; $p1,$p2,$p3,$p4,$p5,$p6)
 	};
 }
 

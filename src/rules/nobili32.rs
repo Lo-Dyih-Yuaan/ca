@@ -238,8 +238,8 @@ pub fn rule(_nw: &State, n: &State, _ne: &State,
 	//汇合态
 	if let Confluent(_, _)|HorizontalConfluent|VerticalConfluent|OrthogonalConfluent = c {
 		let is_intersection =
-			matches!((e, w), (Ordinary, Input)|(Empty, Input)|(Input, Ordinary)|(Input, Empty)) &&
-			matches!((n, s), (Ordinary, Input)|(Empty, Input)|(Input, Ordinary)|(Input, Empty));
+			matches!((e, w), (Ordinary|Empty, Input)|(Input, Ordinary|Empty)) &&
+			matches!((n, s), (Ordinary|Empty, Input)|(Input, Ordinary|Empty));
 		let next = if let Confluent(_, next) = c {*next} else {Quiescent};
 		if is_intersection {
 			let horizontal = is_exist!(Ordinary in e,w);
