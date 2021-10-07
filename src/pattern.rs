@@ -23,6 +23,14 @@ impl<T> Pattern<T> {
 		self.data.is_empty() || self.data.iter().all(|v| v.is_empty())
 	}
 }
+impl<T: Clone> Pattern<T> {
+	pub fn set(&mut self, i: usize, j: usize, state: &T) {
+		self.data[i][j] = state.clone();
+	}
+	pub fn get(&self, i: usize, j: usize) -> T {
+		self.data[i][j].clone()
+	}
+}
 #[allow(dead_code)]
 impl<T> Pattern<T>
   where T: Clone + PartialEq {

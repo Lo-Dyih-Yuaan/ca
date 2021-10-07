@@ -203,6 +203,34 @@ fn generations_from_rle(rle: &str) -> String {
 	from_rle(&map!{'.'=>".", 'A'=>"#", 'B'=>"A", 'C'=>"B", 'D'=>"C", 'E'=>"D", 'F'=>"E", 'G'=>"F", 'H'=>"G", 'I'=>"H", 'J'=>"I", 'K'=>"J", 'L'=>"K", 'M'=>"L", 'N'=>"M", 'O'=>"N", 'P'=>"O", 'Q'=>"P", 'R'=>"Q", 'S'=>"R", 'T'=>"S", 'U'=>"T", 'V'=>"U", 'W'=>"V", 'X'=>"W", 'Y'=>"X", 'Z'=>"Y"}, ".", rle)
 }
 
+
+macro_rules! test_circuit {
+	($rule:expr, $ground:expr, $p:expr, $period:expr, $inout_pos:expr, $inouts:expr) => {{
+		let (rule, _, _) = $rule;
+		let circuit = Pattern::try_from($p).ok().unwrap();
+		let inout_pos = $inout_pos;
+		let inouts = $inouts;
+		let ground = from_stream!($ground);
+		print!("{}", circuit);
+		for (ins, outs) in inouts.iter() {
+			let mut p = circuit.clone();
+			let (in_pos, out_pos) = inout_pos;
+			for n in 0..in_pos.len() {
+				let (i, j) = in_pos[n];
+				p.set(i, j, &from_stream!(ins[n]));
+			}
+			for _ in 0..$period {
+				p = p.infinte_evolve(&ground, &rule).0;
+			}
+			for n in 0..out_pos.len() {
+				let (i, j) = out_pos[n];
+				println!("{:?}\t{}", (ins, outs), p.get(i, j) == from_stream!(outs[n]));
+			}
+		}
+	}};
+}
+
+
 fn main() {
 	run_ca!{
 		rule!{Langton's Ant R L},
@@ -548,4 +576,119 @@ fn main() {
 		},
 		42
 	}
+
+	//NOT
+	test_circuit!{
+		rule!{NoTimeAtAll - B 0 1 / T 0 3}, ".",
+		concat![
+			".---.\n",
+			"--.--\n",
+			".---.\n",
+		], 6,
+		([(1,0)], [(1,4)]), [
+			(["0"], ["1"]),
+			(["1"], ["0"]),
+		]
+	};
+	//NAND
+	test_circuit!{
+		rule!{NoTimeAtAll - B 0 1 / T 0 3}, ".",
+		concat![
+			"-.\n",
+			"--\n",
+			"-.\n",
+		], 2,
+		([(0,0), (2,0)], [(1,1)]), [
+			(["0", "0"], ["1"]),
+			(["0", "1"], ["1"]),
+			(["1", "0"], ["1"]),
+			(["1", "1"], ["0"]),
+		]
+	};
+	//AND
+	test_circuit!{
+		rule!{NoTimeAtAll - B 0 1 / T 0 3}, ".",
+		concat![
+			"-.---.\n",
+			"---.--\n",
+			"-.---.\n",
+		], 8,
+		([(0,0), (2,0)], [(1,5)]), [
+			(["0", "0"], ["0"]),
+			(["0", "1"], ["0"]),
+			(["1", "0"], ["0"]),
+			(["1", "1"], ["1"]),
+		]
+	};
+	//OR
+	test_circuit!{
+		rule!{NoTimeAtAll - B 0 1 / T 0 3}, ".",
+		concat![
+			".---...\n",
+			"--.---.\n",
+			".---.-.\n",
+			".....--\n",
+			".---.-.\n",
+			"--.---.\n",
+			".---...\n",
+		], 10,
+		([(1,0), (5,0)], [(3,6)]), [
+			(["0", "0"], ["0"]),
+			(["0", "1"], ["1"]),
+			(["1", "0"], ["1"]),
+			(["1", "1"], ["1"]),
+		]
+	};
+	//NOR
+	test_circuit!{
+		rule!{NoTimeAtAll - B 0 1 / T 0 3}, ".",
+		concat![
+			".---.......\n",
+			"--.---.....\n",
+			".---.-.---.\n",
+			".....---.--\n",
+			".---.-.---.\n",
+			"--.---.....\n",
+			".---.......\n",
+		], 16,
+		([(1,0), (5,0)], [(3,10)]), [
+			(["0", "0"], ["1"]),
+			(["0", "1"], ["0"]),
+			(["1", "0"], ["0"]),
+			(["1", "1"], ["0"]),
+		]
+	};
+	//XOR
+	test_circuit!{
+		rule!{NoTimeAtAll - B 0 1 / T 0 3}, ".",
+		concat![
+			".---...\n",
+			"--.---.\n",
+			".---.--\n",
+			"--.---.\n",
+			".---...\n",
+		], 9,
+		([(1,0), (3,0)], [(2,6)]), [
+			(["0", "0"], ["0"]),
+			(["0", "1"], ["1"]),
+			(["1", "0"], ["1"]),
+			(["1", "1"], ["0"]),
+		]
+	};
+	//XNOR
+	test_circuit!{
+		rule!{NoTimeAtAll - B 0 1 / T 0 3}, ".",
+		concat![
+			".---.\n",
+			"--.-.\n",
+			".----\n",
+			"...-.\n",
+		], 7,
+		([(1,0), (3,3)], [(2,4)]), [
+			(["0", "0"], ["1"]),
+			(["0", "1"], ["0"]),
+			(["1", "0"], ["0"]),
+			(["1", "1"], ["1"]),
+		]
+	};
 }
